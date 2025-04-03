@@ -27,8 +27,8 @@ import { Footer } from "../components/Footer"
 import { initializeIcons } from "@fluentui/font-icons-mdl2"
 import * as CryptoJS from 'crypto-js';
 
-import styles from '@/styles/component.module.scss';
-import DocumentViewer from "@/components/DocumentViewer"
+import styles from '../styles/component.module.scss'
+import DocumentViewer from "../components/DocumentViewer"
 import { useRouter } from "next/router"
 
 initializeIcons()

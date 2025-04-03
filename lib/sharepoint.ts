@@ -55,8 +55,6 @@ export async function fetchRootItems() {
         },
       }
     );
-    console.log("RESPONSE:::::::")
-    console.log(response.data.d.results)
     return response.data.d.results;
   } catch (error) {
     console.error("Error fetching root items:", error);
@@ -111,8 +109,6 @@ export async function fetchFileURL(filePath: string) {
         },
       }
     );
-
-    console.log(response)
     return response;
   } catch (error) {
     console.error("Error fetching file item:", error);
