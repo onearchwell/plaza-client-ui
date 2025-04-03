@@ -80,6 +80,9 @@
     border-bottom: 1px solid #F4F4F4;
     font-size: small;
     font-family: Arial, sans-serif;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    white-space: nowrap;
   }
   
   .breadcrumb {

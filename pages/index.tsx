@@ -40,6 +40,7 @@ const stackfontStyles: IStackStyles = {
 
 interface ITreeItem {
   key: string;
+  uniqueId: string;
   name: string;
   children?: ITreeItem[];
   path: string;
@@ -115,12 +116,53 @@ const App: React.FC = () => {
     }
   };
 
+  const updateBreadcrumbItems = (inputUrl: string, title: string) => {
+    // console.log("inputUrl -----------",inputUrl)
+    // console.log("title -----------",title)
+    let parts: any[] = []
+    if (inputUrl !== process.env.NEXT_PUBLIC_PREURL) 
+      parts = inputUrl ? inputUrl.split("/").filter((p) => p) : [];
+    // Take only the last 2 index
+    const filteredParts = parts.slice(-2);
+    const startIndex = parts.length - filteredParts.length;
+    const seenPaths = new Set<string>();
+    seenPaths.add("sites/ResourceCenter/" + process.env.NEXT_PUBLIC_DOCUMENT_LIBRARY_NAME);
+    const breadcrumbs: IBreadcrumbItem[] = [
+      // {
+      //   key: "sites/ResourceCenter/" + props.documentLibraryName,
+      //   text: props.documentLibraryName,
+      //   ...(isAdmin && { onClick: () => loadLiveDocuments("/sites/ResourceCenter/" + props.documentLibraryName) }),
+      // },
+      ...filteredParts.map((part, index) => {
+        const path = parts.slice(0, startIndex + index + 1).join("/");
+        if (index == 1) {
+          if (path.includes('.')) { //It is a file
+            part = title? title : part
+          }
+        }
+        return {
+          key: path,
+          text: part,
+          // ...(isAdmin && { onClick: () => loadLiveDocuments("/" + path) }),
+        };
+      })
+      .filter((breadcrumb) => {
+        if (seenPaths.has(breadcrumb.key)) return false;
+        seenPaths.add(breadcrumb.key);
+        return true;
+      })
+    ];
+
+    setBreadcrumbItems(breadcrumbs);
+    console.log("Breadcrumb updated:", breadcrumbs);    
+  }
+
   const generateNumericId = () => {
     return Math.floor(100000000000 + Math.random() * 900000000000).toString();
   };
 
   const buildTree = (items: any[]): ITreeItem[] => {
-    const root: ITreeItem = { key: "root", name: "root", children: [], path: "/", isfolder: true };
+    const root: ITreeItem = { key: "root", name: "root", uniqueId: "", children: [], path: "/", isfolder: true};
     
     items.forEach(item => {
       const parts = item.FileRef.split("/").filter((p: any) => p).slice(2);
@@ -133,14 +175,26 @@ const App: React.FC = () => {
             if (existingNode) {
                 currentLevel = existingNode.children!;
             } else {
+                const title = item.Title? item.Title : item.FileLeafRef
                 const newNode: ITreeItem = {
                     key: index === parts.length - 1 ? item.Id.toString() : generateNumericId(),
-                    name: index === parts.length - 1 ? item.Title : part,
+                    name: index === parts.length - 1 ? title : part,
+                    uniqueId: index === parts.length - 1 ? item.UniqueId : "",
                     path: index === parts.length - 1 ? item.FileRef : path,
                     children: index === parts.length - 1 ? undefined : [],
                     isfolder: index === parts.length - 1 ? false : true,
                     iconProps: index === parts.length - 1 ? {iconName: 'Page'} : {iconName: 'Folder'},
                 };
+                if(item.Title == "Welcome to Plaza_Associates") {
+                  const url = "https://plazahomemortgage.sharepoint.com/sites/DocumentManagerDev/_layouts/15/Embed.aspx?UniqueId="+newNode.uniqueId
+                  const listItem: IDocumentItem = {
+                    id: newNode.key,
+                    name: newNode.name,
+                    isFolder: newNode.isfolder,
+                    serverRelativeUrl: url
+                  };
+                  setSelectedItem(listItem)
+                }
                 currentLevel.push(newNode);
                 if (newNode.children) {
                     currentLevel = newNode.children;
@@ -232,29 +286,20 @@ const App: React.FC = () => {
 
   async function handleItemSelect(item: ITreeItem): Promise<void> {
     console.log("Items selected: ", item);
+    updateBreadcrumbItems(item.path, item.name)
     if(item) {
         if(item.isfolder) {
           onTreeItemExpandCollapse(item, true);
           setSelectedKey(item.key) //Unique
         }
       if (isAdmin || !item.isfolder) {
+        const url = "https://plazahomemortgage.sharepoint.com/sites/DocumentManagerDev/_layouts/15/Embed.aspx?UniqueId="+item.uniqueId
         const listItem: IDocumentItem = {
           id: item.key,
           name: item.name,
           isFolder: item.isfolder,
-          serverRelativeUrl: item.path
+          serverRelativeUrl: url
         };
-        const endpoint = "/api/sharepoint/file?itemId="+item.path
-
-        const response = await fetch(endpoint)
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status} - ${response.statusText}`);
-        }
-        if (!response.body) {
-          throw new Error("Response body is empty");
-        }
-        const data = await response.json();
-        console.log(data)
         setSelectedItem(listItem)
       }
     }
@@ -428,7 +473,7 @@ const App: React.FC = () => {
               {/* Document list or file details */}
              <div className={styles.documentListContainer}>
                 <div className={styles.breadcrumbContainer} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Breadcrumb items={breadcrumbItems} maxDisplayedItems={5} className={styles.breadcrumb} />
+                  <Breadcrumb items={breadcrumbItems} maxDisplayedItems={5} className={styles.breadcrumb} styles={{ list: { flexWrap: 'nowrap' } }} />
 
                   {selectedItem && !selectedItem.isFolder?
                   <PrimaryButton onClick={openInNewTab}

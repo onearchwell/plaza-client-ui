@@ -6,7 +6,7 @@ interface LayoutProps {
   title?: string
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, title = "SharePoint Explorer" }) => {
+const Layout: React.FC<LayoutProps> = ({ children, title = "Plaza Resource Center" }) => {
   return (
     <>
       <Head>

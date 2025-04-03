@@ -40,11 +40,12 @@ export async function fetchRootItems() {
   try {
     const accessToken = await getSharePointAccessToken();
     const siteUrl = process.env.SHAREPOINT_URL!;
+    const permission = process.env.NEXT_PUBLIC_PERMISSION!;
     const libraryTitle = process.env.NEXT_PUBLIC_DOCUMENT_LIBRARY_NAME!; // Document Library Name
 
     const response = await axios.get(
       // `${siteUrl}/_api/web/lists/getbytitle('Plaza%20Resource%20Center')/items?$filter=FSObjType eq 0&$select=ID,FileLeafRef,FileRef,Title,Permissions`,
-      `${siteUrl}/_api/web/lists/getbytitle('Plaza%20Resource%20Center')/items?$filter=FSObjType eq 0 and Permissions eq 'ResCtrRev'&$select=ID,FileLeafRef,FileRef,Title,Permissions`,
+      `${siteUrl}/_api/web/lists/getbytitle('Plaza%20Resource%20Center')/items?$filter=FSObjType eq 0 and Permissions eq '${permission}'&$select=ID,UniqueId,FileLeafRef,FileRef,Title,Permissions`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -95,9 +96,12 @@ export async function fetchFileURL(filePath: string) {
   try {
     const accessToken = await getSharePointAccessToken();
     const siteUrl = process.env.SHAREPOINT_URL!;
+    const siteId = process.env.NEXT_PUBLIC_SITE_ID!;
 
     const response = await axios.get(
-      `${siteUrl}/_api/SP.Web.GetFileByServerRelativeUrl('${filePath}')/ListItemAllFields/CreateLink`,
+      // `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/items/259`,
+      `https://plazahomemortgage.sharepoint.com/sites/DocumentManagerDev/_api/Web/Lists(guid'fc30957a-f348-48d7-adf9-32a1fc961241')/Items(180)`,
+      // `${siteUrl}/_api/web/GetFileByServerRelativeUrl('${filePath}')/$value`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -107,9 +111,9 @@ export async function fetchFileURL(filePath: string) {
     );
 
     console.log(response)
-    return response.data.d.link.webUrl;
+    return response;
   } catch (error) {
-    console.error("Error fetching folder items:", error);
+    console.error("Error fetching file item:", error);
     throw error;
   }
 }

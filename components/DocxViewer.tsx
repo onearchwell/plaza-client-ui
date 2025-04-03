@@ -3,12 +3,11 @@ import { useEffect, useRef } from "react";
 import * as docx from "docx-preview"; // Import as a module
 import { Stack } from "@fluentui/react";
 
-const DocxViewer: React.FC<{ docxUrl: string|undefined }> = ({ docxUrl }) => {
+const DocxViewer: React.FC<{ docxUrl: string }> = ({ docxUrl }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchDocx = async () => {
-      //@ts-ignore
       const response = await fetch(docxUrl);
       const blob = await response.blob();
       const arrayBuffer = await blob.arrayBuffer();

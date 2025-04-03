@@ -1,19 +1,7 @@
 import * as React from 'react';
-import { useState } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
 import {Stack } from '@fluentui/react';
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
 
-
-const PdfViewer: React.FC<{ pdfUrl: string|undefined }> = ({ pdfUrl }) => {
-  const [numPages, setNumPages] = useState<number>(0);
-
-  // Callback function for when the PDF is loaded
-  function onLoadSuccess({ numPages }: { numPages: number }) {
-    setNumPages(numPages);
-    console.log(numPages)
-  }
+const PdfViewer: React.FC<{ pdfUrl: string }> = ({ pdfUrl }) => {
   
   return (
     <Stack 
@@ -21,7 +9,7 @@ const PdfViewer: React.FC<{ pdfUrl: string|undefined }> = ({ pdfUrl }) => {
     styles={{
         root: {
             width: "100%",
-            height: "500px",
+            height: "auto",
             overflow: "auto",
             border: "1px solid #ddd",
             padding: "10px",
@@ -31,9 +19,7 @@ const PdfViewer: React.FC<{ pdfUrl: string|undefined }> = ({ pdfUrl }) => {
           }
         }}
       >
-      <Document file={pdfUrl} onLoadSuccess={onLoadSuccess} onLoadError={(error) => console.error('Error loading PDF:', error)}>
-        <Page pageNumber={1} renderAnnotationLayer={true} />
-      </Document>
+      <iframe src={`${pdfUrl}#view=FitH`} height="500" width="1200"/>
     </Stack>
   );
 };
