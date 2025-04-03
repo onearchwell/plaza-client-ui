@@ -28,6 +28,7 @@ import { initializeIcons } from "@fluentui/font-icons-mdl2"
 
 import styles from '@/styles/component.module.scss';
 import DocumentViewer from "@/components/DocumentViewer"
+import { useRouter } from "next/router"
 
 initializeIcons()
 const fontFamily: string = "Arial, sans-serif"
@@ -80,6 +81,9 @@ interface IDocumentItem {
 }
 
 const App: React.FC = () => {
+  const router = useRouter();
+
+  
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useState<boolean>(false)
@@ -96,6 +100,7 @@ const App: React.FC = () => {
   const [currentPath, setCurrentPath] = useState<string>("")
   const [breadcrumbItems, setBreadcrumbItems] = useState<IBreadcrumbItem[]>([])
   const [firstLevelKeys, setFirstLevelKeys] = useState<Set<string>>(new Set());
+  const [landingPageId, setLandingPageId] = useState<string | null>("259");
 
   const fetchItems = async () => {
     try {
@@ -185,15 +190,22 @@ const App: React.FC = () => {
                     isfolder: index === parts.length - 1 ? false : true,
                     iconProps: index === parts.length - 1 ? {iconName: 'Page'} : {iconName: 'Folder'},
                 };
-                if(item.Title == "Welcome to Plaza_Associates") {
-                  const url = "https://plazahomemortgage.sharepoint.com/sites/DocumentManagerDev/_layouts/15/Embed.aspx?UniqueId="+newNode.uniqueId
-                  const listItem: IDocumentItem = {
-                    id: newNode.key,
-                    name: newNode.name,
-                    isFolder: newNode.isfolder,
-                    serverRelativeUrl: url
-                  };
-                  setSelectedItem(listItem)
+
+                if(landingPageId) {
+                  console.log("In landingPageId :", landingPageId)
+                  if(item.ID == landingPageId) {
+                      const url = "https://plazahomemortgage.sharepoint.com/sites/DocumentManagerDev/_layouts/15/Embed.aspx?UniqueId="+newNode.uniqueId
+                      const listItem: IDocumentItem = {
+                      id: newNode.key,
+                      name: newNode.name,
+                      isFolder: newNode.isfolder,
+                      serverRelativeUrl: url
+                    }
+                    setSelectedItem(listItem)
+                    setSelectedKey(newNode.key)
+                    updateBreadcrumbItems(newNode.path, newNode.name)
+                    setLandingPageId(null)
+                  }
                 }
                 currentLevel.push(newNode);
                 if (newNode.children) {
@@ -225,10 +237,25 @@ const App: React.FC = () => {
   };  
 
   useEffect(() => {
-    // fetchItems(currentPath || undefined)
+    // Check if it is a redirect page
+    const url = new URL(window.location.href);
+    const params = new URLSearchParams(url.search);
+    console.log(params)
+    const allowedPermissions = ["2FBF194333B91EFB882580520059E2E2", "9A6933CCBDA4E9BC88257F720001CAD7", "218266EE8CD8990607257A870056E66C", "742359CCC63132DD88257F720070BED3", "A38B30AEEBD452D507257A2B0079ECEC"];
+    if (!params.has("R") || !params.get("R") || !allowedPermissions.includes(params.get("R"))) {
+      router.push("/unauthorized");
+      return;
+    }
     loadTreeView()
+
+    if (params.has("fileId") && params.get("fileId")) {
+      const idValue = params.get("fileId");
+      console.log("Extracted fileId:", idValue);
+      setLandingPageId(idValue)
+      console.log("Landing page id is :",landingPageId)
+    }
     setLoading(false)
-  }, [loading])
+  }, [loading, router])
 
   if (loading) {
     return <div>Loading...</div>
