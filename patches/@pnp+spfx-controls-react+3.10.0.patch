@@ -1,0 +1,12 @@
+diff --git a/node_modules/@pnp/spfx-controls-react/lib/controls/treeView/TreeView.js b/node_modules/@pnp/spfx-controls-react/lib/controls/treeView/TreeView.js
+index 3800e03..aa5cb6d 100644
+--- a/node_modules/@pnp/spfx-controls-react/lib/controls/treeView/TreeView.js
++++ b/node_modules/@pnp/spfx-controls-react/lib/controls/treeView/TreeView.js
+@@ -30,6 +30,7 @@ import { getFluentUIThemeOrDefault } from '../../common/utilities/ThemeUtility';
+ import { SelectChildrenMode, TreeViewSelectionMode } from './ITreeViewProps';
+ import TreeItem from './TreeItem';
+ import styles from './TreeView.module.scss';
++import * as ControlStrings from '../../../../../../../components/ControlStrings'
+ /**
+  * Renders the controls for TreeItem component
+  */

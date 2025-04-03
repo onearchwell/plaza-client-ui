@@ -1,0 +1,10 @@
+TENANT_ID=1771ac3f-0fb2-4d11-bbee-b3c79246e1fe
+CLIENT_ID=0a9db665-748d-4664-838a-993682a4a4bf
+CLIENT_SECRET=qKI8Q~eJTsYC3e9PnGHvzmryfhcjDV3ivOX9caYy
+SHAREPOINT_URL="https://plazahomemortgage.sharepoint.com/sites/DocumentManagerDev"
+SITE_ID=66942b31-a254-4a2c-b247-ffa469198186
+DRIVE_ID=b!MSuUZlSiLEqyR_-kaRmBhqdi1DgTySdKrhjO4nj8uTJ6lTD8SPPXSK35MqH8lhJB
+NEXT_PUBLIC_DOCUMENT_LIBRARY_NAME="Plaza Resource Center"
+NEXT_PUBLIC_SITE_URL="https://plazahomemortgage.sharepoint.com/sites/DocumentManagerDev/Plaza Resource Center"
+NEXT_PUBLIC_PREURL="/sites/DocumentManagerDev/Plaza Resource Center"
+
