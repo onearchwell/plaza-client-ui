@@ -30,6 +30,7 @@ import * as CryptoJS from 'crypto-js';
 import styles from '../styles/component.module.scss'
 import DocumentViewer from "../components/DocumentViewer"
 import { useRouter } from "next/router"
+import Header from "../components/Header"
 
 initializeIcons()
 const fontFamily: string = "Arial, sans-serif"
@@ -224,6 +225,11 @@ const App: React.FC = () => {
     return data
   };
 
+  const handleLogout = () => {
+    console.log("Logging out...")
+    // Add your logout logic here
+  }
+
   // Load TreeView from SharePoint
   const loadTreeView = async () => {
     console.log("Loading Tree View data")
@@ -379,7 +385,7 @@ const App: React.FC = () => {
         </div>
       }
     >
-
+      <Header onLogout={handleLogout} />
       <Stack className={styles.documentTreeView} styles={stackfontStyles}>
         <Stack tokens={stackTokens}>
 
