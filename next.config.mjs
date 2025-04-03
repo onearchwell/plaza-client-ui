@@ -20,9 +20,8 @@ const nextConfig = {
     webpackBuildWorker: false,
     parallelServerBuildTraces: false,
     parallelServerCompiles: false,
-  },
-  swcMinify: false, 
-  webpack(config, { isServer }) {
+  },  
+    webpack(config, { isServer }) {
     // Fix externals definition
     config.externals = config.externals || [];
 

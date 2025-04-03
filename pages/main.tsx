@@ -1,13 +1,24 @@
 import { GetServerSideProps } from "next";
 import { ParsedUrlQuery } from "querystring";
+import * as CryptoJS from 'crypto-js';
 
-const allowedPermissions = ["2FBF194333B91EFB882580520059E2E2", "9A6933CCBDA4E9BC88257F720001CAD7", "218266EE8CD8990607257A870056E66C", "742359CCC63132DD88257F720070BED3", "A38B30AEEBD452D507257A2B0079ECEC"];
+const allowedPermissions = ["ResCtrUser", "ResCtrWL", "ResCtrRev", "ResCtrCOR", "RecCtrMC"];
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { query } = context;
-  const userId = context.query.R as string | undefined;
+  const userId = context.query.me as string;
 
-  if (!userId || !allowedPermissions.includes(userId)) {
+  const checkMe = (user: string): boolean =>  {
+    // const key = "hufhwflkcklscklsnsdcjdsck"
+    // const encryptedMessage = CryptoJS.AES.encrypt(user, key).toString();
+    // console.log('Encrypted Message:', encryptedMessage);
+    // const bytes = CryptoJS.AES.decrypt(encryptedMessage, key);
+    // const decryptedMessage = bytes.toString(CryptoJS.enc.Utf8);
+    // console.log('Decrypted Message:', decryptedMessage);
+    return allowedPermissions.includes(user)
+  }
+
+  if (!userId || !checkMe(userId)) {
     return {
       redirect: {
         destination: "/unauthorized",
