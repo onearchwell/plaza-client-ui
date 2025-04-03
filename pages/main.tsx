@@ -15,6 +15,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     // const bytes = CryptoJS.AES.decrypt(encryptedMessage, key);
     // const decryptedMessage = bytes.toString(CryptoJS.enc.Utf8);
     // console.log('Decrypted Message:', decryptedMessage);
+    
     return allowedPermissions.includes(user)
   }
 
