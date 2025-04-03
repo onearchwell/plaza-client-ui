@@ -357,7 +357,8 @@ const App: React.FC = () => {
       <TreeItem className={styles.treeViewItem} key={item.key} itemType={item.isfolder? "branch" : "leaf"}
             value={item.name} onClick={() => handleItemSelect(item)} 
             style={{ marginLeft: item.children && item.children.length > 0 ? '20px' : '40px'}}
-            iconProps={item.iconProps} > 
+            // iconProps={item.iconProps} 
+            > 
               {/* DEEPTHI <Tooltip content={`${rootFolder}${item.path.split(rootFolder)[1] || item.path}`}> */}
                 <TreeItemLayout>{item.name}</TreeItemLayout>
               {/* </Tooltip> */}
