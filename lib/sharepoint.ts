@@ -8,7 +8,7 @@ async function getSharePointAccessToken(): Promise<string> {
     const tenantId = process.env.TENANT_ID!;
     const clientId = process.env.CLIENT_ID!;
     const clientSecret = process.env.CLIENT_SECRET!;
-    const siteUrl = process.env.SHAREPOINT_URL!;
+    const siteUrl = process.env.NEXT_PUBLIC_SHAREPOINT_URL!;
 
     const tokenUrl = `https://accounts.accesscontrol.windows.net/${tenantId}/tokens/OAuth/2`;
 
@@ -39,7 +39,7 @@ async function getSharePointAccessToken(): Promise<string> {
 export async function fetchRootItems() {
   try {
     const accessToken = await getSharePointAccessToken();
-    const siteUrl = process.env.SHAREPOINT_URL!;
+    const siteUrl = process.env.NEXT_PUBLIC_SHAREPOINT_URL!;
     const permission = process.env.NEXT_PUBLIC_PERMISSION!;
     const libraryTitle = process.env.NEXT_PUBLIC_DOCUMENT_LIBRARY_NAME!; // Document Library Name
 
@@ -69,10 +69,11 @@ export async function fetchRootItems() {
 export async function fetchFolderItems(folderPath: string) {
   try {
     const accessToken = await getSharePointAccessToken();
-    const siteUrl = process.env.SHAREPOINT_URL!;
+    const siteUrl = process.env.NEXT_PUBLIC_SHAREPOINT_URL!;
 
     const response = await axios.get(
-      `${siteUrl}/_api/web/GetFolderByServerRelativeUrl('${folderPath}')/Files`,
+      `${siteUrl}/_api/web/getFolderByServerRelativePath('${folderPath}')/folders`,
+      // `${siteUrl}/_api/web/getFolderByServerRelativePath('${folderPath}')/files`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -95,13 +96,46 @@ export async function fetchFolderItems(folderPath: string) {
 export async function fetchFileURL(filePath: string) {
   try {
     const accessToken = await getSharePointAccessToken();
-    const siteUrl = process.env.SHAREPOINT_URL!;
-    const siteId = process.env.NEXT_PUBLIC_SITE_ID!;
+    const siteUrl = process.env.NEXT_PUBLIC_SHAREPOINT_URL!;
 
     const response = await axios.get(
-      // `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/items/259`,
-      `https://plazahomemortgage.sharepoint.com/sites/DocumentManagerDev/_api/Web/Lists(guid'fc30957a-f348-48d7-adf9-32a1fc961241')/Items(180)`,
-      // `${siteUrl}/_api/web/GetFileByServerRelativeUrl('${filePath}')/$value`,
+      `${siteUrl}/_api/web/getfilebyserverrelativeurl('${filePath}')/$value`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Accept': 'application/json'
+        },
+        responseType: 'arraybuffer'
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error("Error fetching file item:", error);
+    throw error;
+  }
+}
+
+/**
+ * Submit feedback
+ * @param comment
+ * @param name
+ * @param fileId
+ * @param currentPath
+ */
+export async function submitFeedback(comment: string, name: string, fileId: string, currentPath: string) {
+  try {
+    const accessToken = await getSharePointAccessToken();
+    const siteUrl = process.env.NEXT_PUBLIC_SHAREPOINT_URL! + "/_api/web/lists/getByTitle('FeedbackList')/items"
+    console.log(siteUrl)
+
+    const response = await axios.post(
+      siteUrl,
+      {
+        FeedbackMessage: comment,
+        Name: name,
+        FileID: fileId,
+        DocumentURL: currentPath
+      },
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -109,9 +143,10 @@ export async function fetchFileURL(filePath: string) {
         },
       }
     );
+    console.log(response)
     return response;
   } catch (error) {
-    console.error("Error fetching file item:", error);
+    console.error("Error submitting feedback:", error);
     throw error;
   }
 }

@@ -23,6 +23,7 @@ export const Footer: React.FC<FooterProps> = ({ onFeedbackClick, spContext , cur
     const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useState<boolean>(false)
     const [comment, setComment] = useState('');
     const [name, setName] = useState('');
+    const [isSubmitted, setIsSubmitted] = useState(false);
 
   
   const siteInfo = React.useMemo(() => {
@@ -51,13 +52,22 @@ export const Footer: React.FC<FooterProps> = ({ onFeedbackClick, spContext , cur
  
     const handleSubmitFeedback = async (): Promise<void> => {
       try {
-    
-        const item = await sp.web.lists.getByTitle("FeedbackList").items.add({
-          FeedbackMessage: comment,
-          Name: name,
-          FileID:(fileId || '').toString(),
-          DocumentURL: currentPath,
+        await fetch('/api/sharepoint/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            comment: comment,
+            name: name,
+            fileId: (fileId || '').toString(),
+            currentPath: currentPath
+          })
         });
+
+        setIsSubmitted(true); // Show success message
+        // Close the pop-up after 2 seconds
+        setTimeout(() => {
+          setIsSubmitted(false);
+        }, 2000);
   
         setIsFeedbackFormOpen(false)
         setName('')
@@ -213,7 +223,21 @@ export const Footer: React.FC<FooterProps> = ({ onFeedbackClick, spContext , cur
         />
       </DialogFooter>
     </Dialog>
+          {/* Fluent UI Dialog for success message */}
+          <Dialog
+        hidden={!isSubmitted}
+        dialogContentProps={{
+          type: DialogType.normal,
+          title: 'Thanks for your feedback!',
+          subText: 'Your feedback has been successfully submitted.',
+        }}
+        modalProps={{
+          isBlocking: false,
+        }}
+      >
+      </Dialog>
     </div>
+    
   )
 }
 

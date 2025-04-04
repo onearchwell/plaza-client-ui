@@ -19,13 +19,16 @@ import {
   Breadcrumb,
   TooltipHost,
   DirectionalHint,
-  Tooltip,
 } from "@fluentui/react"
 import { Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
 import { IIconProps } from '@fluentui/react/lib/Icon';
 import { Footer } from "../components/Footer"
 import { initializeIcons } from "@fluentui/font-icons-mdl2"
 import * as CryptoJS from 'crypto-js';
+import {
+  FolderRegular,
+  DocumentRegular,
+} from "@fluentui/react-icons";
 
 import styles from '../styles/component.module.scss'
 import DocumentViewer from "../components/DocumentViewer"
@@ -40,6 +43,15 @@ const stackfontStyles: IStackStyles = {
     fontFamily: fontFamily,
   },
 };
+
+const UserPermissionGroup = [
+  {"group":"ResCtrUser", "landingPageId": "259"},
+  {"group":"ResCtrTesters", "landingPageId": "259"},
+  {"group":"ResCtrMC", "landingPageId": "39"},
+  {"group":"ResCtrWHL", "landingPageId": "36"},
+  {"group":"ResCtrCOR", "landingPageId": "38"},
+  {"group":"ResCtrRev", "landingPageId": "34"},
+]
 
 interface ITreeItem {
   key: string;
@@ -102,9 +114,9 @@ const App: React.FC = () => {
   const [currentPath, setCurrentPath] = useState<string>("")
   const [breadcrumbItems, setBreadcrumbItems] = useState<IBreadcrumbItem[]>([])
   const [firstLevelKeys, setFirstLevelKeys] = useState<Set<string>>(new Set());
-  const [landingPageId, setLandingPageId] = useState<string | null>("259");
+  const [landingPageId, setLandingPageId] = useState<string | null>("");
 
-  const fetchItems = async () => {
+  const fetchItems = async (group) => {
     try {
       const endpoint = "/api/sharepoint/root"
 
@@ -196,12 +208,13 @@ const App: React.FC = () => {
                 if(landingPageId) {
                   console.log("In landingPageId :", landingPageId)
                   if(item.ID == landingPageId) {
-                      const url = "https://plazahomemortgage.sharepoint.com/sites/DocumentManagerDev/_layouts/15/Embed.aspx?UniqueId="+newNode.uniqueId
+                      const url = process.env.NEXT_PUBLIC_SHAREPOINT_URL + "/_layouts/15/Embed.aspx?UniqueId="+newNode.uniqueId
                       const listItem: IDocumentItem = {
                       id: newNode.key,
                       name: newNode.name,
                       isFolder: newNode.isfolder,
-                      serverRelativeUrl: url
+                      // serverRelativeUrl: url
+                      serverRelativeUrl: newNode.path
                     }
                     setSelectedItem(listItem)
                     setSelectedKey(newNode.key)
@@ -219,9 +232,9 @@ const App: React.FC = () => {
     return root.children!;
   };
 
-  const getAllFiles = async (): Promise<ITreeItem[]> => {
+  const getAllFiles = async (group): Promise<ITreeItem[]> => {
     let treeViewItems: ITreeItem[] = []
-    const data = await fetchItems()
+    const data = await fetchItems(group)
     return data
   };
 
@@ -231,9 +244,9 @@ const App: React.FC = () => {
   }
 
   // Load TreeView from SharePoint
-  const loadTreeView = async () => {
+  const loadTreeView = async (group) => {
     console.log("Loading Tree View data")
-    const data = await getAllFiles()
+    const data = await getAllFiles(group)
     console.log(data)
     const treeData = buildTree(data);
     console.log(treeData)
@@ -244,7 +257,7 @@ const App: React.FC = () => {
   };  
 
   const checkMe = (user: string): boolean =>  {
-    const allowedPermissions = ["ResCtrUser", "ResCtrWHL", "ResCtrMC", "ResCtrRev", "RecCtrMC"];
+    const allowedPermissions = ["ResCtrUser", "ResCtrWHL", "ResCtrMC", "ResCtrRev", "ResCtrCOR"];
     // const key = "encryptme"
     // const encryptedMessage = CryptoJS.SHA256(user).toString(CryptoJS.enc.Hex);
     // console.log('Encrypted Message:', encryptedMessage);
@@ -260,13 +273,17 @@ const App: React.FC = () => {
     const url = new URL(window.location.href);
     const params = new URLSearchParams(url.search);   
     // const val = localStorage.getItem('me');
-    const val = params.has("me")? params.get("me"): ""
-    console.log(val)
-    if (!val || !checkMe(val)) {
+    const group = params.has("me")? params.get("me"): ""
+    console.log(group)
+    if (!group || !checkMe(group)) {
       router.push("/unauthorized");
       return;
     }
-    loadTreeView()
+
+    const mapped_group = UserPermissionGroup.find(item => item.group === group);
+    setLandingPageId(mapped_group.landingPageId)
+    console.log("Landing page for group is: ",mapped_group.landingPageId)
+    loadTreeView(group)
  
     if (params.has("fileId") && params.get("fileId")) {
       const idValue = params.get("fileId");
@@ -285,9 +302,68 @@ const App: React.FC = () => {
     return <div>{error}</div>
   }
 
+  // async function searchLibraryItemsCont(searchQuery: string): Promise<ITreeItem[]> {
+  //   if (!searchQuery) return [];
+  
+  //   try {
+  //     // Build SharePoint Search API Query
+  //     // const searchQueryBuilder = SearchQueryBuilder()
+  //     //   .text(`path:"${encodeURI(props.siteUrl.replace(/\/$/, ''))}/" ${searchQuery}*`)
+  //     //   .selectProperties("DocId", "UniqueId", "Title", "Path", "FileType", "SPWebUrl") // Use UniqueId to get actual List Item ID
+  //     //   .rowLimit(50);
+  
+  //     // const searchResults = await sp.search(searchQueryBuilder);
+
+  //     // Deepthi - Call Search API here
+  //     const searchResults = {}
+  
+  //     let treeItems: ITreeItem[] = [];
+  
+  //     if (searchResults.PrimarySearchResults.length > 0) {
+  //       treeItems = await Promise.all(
+  //         searchResults.PrimarySearchResults.map(async (item) => {
+  //           // Exclude folders and items with null FileType
+  //           if (!item.FileType || item.FileType === "folder") {
+  //             return null;
+  //           }
+  
+  //           let listItemId = null;
+  
+  //           if (item.UniqueId) {
+  //             try {
+  //               // Fetch List Item using UniqueId
+  //               const listItem = await (await sp.web.getFileById(item.UniqueId).getItem()).select("Id")();
+  //               listItemId = listItem.Id.toString(); // Extract List Item ID
+  //             } catch (error) {
+  //               console.warn("Could not fetch ListItemID for:", item.Path, error);
+  //             }
+  //           }
+  
+  //           const relativePath = decodeURIComponent(new URL(item.Path).pathname);
+  //           console.log("relativePath", "color: green; font-weight: bold;", relativePath);
+  
+  //           return {
+  //             key: listItemId || item.DocId.toString(), // Use ListItem ID if available, fallback to DocId
+  //             label: item.Title || new URL(item.Path).pathname.split("/").pop(), // Extract filename
+  //             data: { url: relativePath, isFolder: false },
+  //           };
+  //         })
+  //       );
+  
+  //       // Remove null values (folders & items with null FileType)
+  //       treeItems = treeItems.filter(Boolean);
+  //     }
+  
+  //     console.log("%cSearch Results:", "color: green; font-weight: bold;", treeItems);
+  //     return treeItems;
+  //   } catch (error) {
+  //     console.error("Error searching library items:", error);
+  //     return [];
+  //   }
+  // }
+
   async function handleSearch () {
     setSearchLoading(true)
-    // DEEPTHI
     // const items = await searchLibraryItemsCont(searchText);
     // console.log("****** Search Returns****",items)
     // setSearchResults(items)
@@ -301,30 +377,44 @@ const App: React.FC = () => {
     console.log("Rendering file : ", selectedItem)
 
     return (
-      <Stack className={styles.fileDetails}>
-        <Stack
-          horizontal
-          horizontalAlign="space-between"
-          verticalAlign="center"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: "start",
-            overflow: 'auto',
-            marginBottom: '10px',
-            fontFamily: fontFamily,
-          }}
-        >
+      // <Stack className={styles.fileDetails}>
+      //   <Stack
+      //     horizontal
+      //     horizontalAlign="space-between"
+      //     verticalAlign="center"
+      //     style={{
+      //       display: 'flex',
+      //       flexDirection: 'column',
+      //       alignItems: "start",
+      //       overflow: 'auto',
+      //       marginBottom: '10px',
+      //       fontFamily: fontFamily,
+      //     }}
+      //   >
           <DocumentViewer fileUrl={selectedItem.serverRelativeUrl} />
-        </Stack>
-      </Stack>
+      //   </Stack>
+      // </Stack>
     )
   }
   
 
   const openInNewTab = () => {
-    if (selectedItem)
-      window.open(selectedItem.serverRelativeUrl, "_blank");
+  //   if (selectedItem)
+  //     window.open(selectedItem.serverRelativeUrl, "_blank");
+  // };
+
+  // const handleDownload = () => {
+    const fileUrl = selectedItem.serverRelativeUrl; // Change to your URL
+    const newWindow = window.open(fileUrl, '_blank');
+  
+    // Optional: for more control, you can create a link dynamically
+    if (newWindow) {
+      const a = newWindow.document.createElement('a');
+      a.href = fileUrl;
+      a.download = ''; // Or set a specific filename: 'report.pdf'
+      newWindow.document.body.appendChild(a);
+      a.click();
+    }
   };
 
   async function onTreeItemExpandCollapse(item: ITreeItem, isExpanded: boolean) {
@@ -340,12 +430,13 @@ const App: React.FC = () => {
           setSelectedKey(item.key) //Unique
         }
       if (isAdmin || !item.isfolder) {
-        const url = "https://plazahomemortgage.sharepoint.com/sites/DocumentManagerDev/_layouts/15/Embed.aspx?UniqueId="+item.uniqueId
+        const url = process.env.NEXT_PUBLIC_SHAREPOINT_URL + "/_layouts/15/Embed.aspx?UniqueId="+item.uniqueId
         const listItem: IDocumentItem = {
           id: item.key,
           name: item.name,
           isFolder: item.isfolder,
-          serverRelativeUrl: url
+          // serverRelativeUrl: url
+          serverRelativeUrl: item.path
         };
         setSelectedItem(listItem)
       }
@@ -354,14 +445,26 @@ const App: React.FC = () => {
 
   const renderTreeItems = (items: any[]) => {
     return items.map((item) => (
-      <TreeItem className={styles.treeViewItem} key={item.key} itemType={item.isfolder? "branch" : "leaf"}
+      <TreeItem className={styles.treeViewItem} key={item.key} itemType={item.children?.length? "branch" : "leaf"}
             value={item.name} onClick={() => handleItemSelect(item)} 
             style={{ marginLeft: item.children && item.children.length > 0 ? '20px' : '40px'}}
             // iconProps={item.iconProps} 
             > 
-              {/* DEEPTHI <Tooltip content={`${rootFolder}${item.path.split(rootFolder)[1] || item.path}`}> */}
-                <TreeItemLayout>{item.name}</TreeItemLayout>
-              {/* </Tooltip> */}
+                <TreeItemLayout>
+                  <TooltipHost
+                        content={`Plaza Resource Center${item.path.split("Plaza Resource Center")[1] || item.path}`} // Display the adjusted path
+                        calloutProps={{
+                          directionalHint: DirectionalHint.bottomLeftEdge, // Position the tooltip to the right
+                        }}
+                      >
+                        <div
+                          className={styles.treeViewItem}
+                        >
+                           {item.isfolder? <FolderRegular /> : <DocumentRegular />}
+                          {item.name}
+                        </div>
+                  </TooltipHost>
+                </TreeItemLayout>
               {item.children && item.children.length > 0 && (
           <Tree>{renderTreeItems(item.children)}</Tree>
         )}
@@ -460,7 +563,7 @@ const App: React.FC = () => {
                 />
                 <Stack className={styles.treeView}>
                 {!enableSearch ?
-                  <Tree aria-label="Dropdown Tree">
+                  <Tree aria-label="Dropdown Tree" /*defaultOpenItems={["1"]}*/>
                     {renderTreeItems(treeitems)}
                   </Tree>
                 : searchLoading?  
@@ -523,7 +626,7 @@ const App: React.FC = () => {
                 <div className={styles.breadcrumbContainer} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Breadcrumb items={breadcrumbItems} maxDisplayedItems={5} className={styles.breadcrumb} styles={{ list: { flexWrap: 'nowrap' } }} />
 
-                  {selectedItem && !selectedItem.isFolder?
+                  {/* {selectedItem && !selectedItem.isFolder?
                   <PrimaryButton onClick={openInNewTab}
                     iconProps={{ iconName: 'Download' }} 
                     styles={{
@@ -547,7 +650,7 @@ const App: React.FC = () => {
                   >
                   </PrimaryButton>
                 : undefined
-              }
+              } */}
               </div>
 
                 {/* Content */}
@@ -562,7 +665,7 @@ const App: React.FC = () => {
           )}
         </Stack>
        
-        <Footer fileId={selectedItem?.fileId} currentPath={selectedItem?.serverRelativeUrl || 'Plaza Resource Center'} onFeedbackClick={() => { setIsFeedbackFormOpen(!isFeedbackFormOpen) }} />
+        <Footer fileId={selectedItem?.id} currentPath={selectedItem?.serverRelativeUrl || 'Plaza Resource Center'} onFeedbackClick={() => { setIsFeedbackFormOpen(!isFeedbackFormOpen) }} />
       </Stack>
        {/* {JSON.stringify(selectedItem)} */}
     </ErrorBoundary>
