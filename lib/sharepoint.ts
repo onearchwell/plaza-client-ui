@@ -116,6 +116,57 @@ export async function fetchFileURL(filePath: string) {
 }
 
 /**
+ * Search Query
+ * @param comment
+ * @param name
+ * @param fileId
+ * @param currentPath
+ */
+export async function searchQuery(queryString: string) {
+  try {
+    const accessToken = await getSharePointAccessToken();
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!
+    const url = process.env.NEXT_PUBLIC_SHAREPOINT_URL! + "/_api/search/postquery"
+    const query = "path:" + encodeURI(siteUrl.replace(/\/$/, '')) + "/" + queryString + "*"
+    console.log(query)
+
+    const body = {
+      "request": {
+        "__metadata": {
+          "type": "Microsoft.Office.Server.Search.REST.SearchRequest"
+        },
+        // "HitHighlightedProperties": [],
+        // "Properties": [],
+        // "Querytext": "Plaza* Path:\"https://plazahomemortgage.sharepoint.com/sites/DocumentManagerDev/Plaza%20Resource%20Center/\"",
+        "Querytext": queryString,
+        // "RefinementFilters": [],
+        // "ReorderingRules": [],
+        "RowLimit": 50,
+        "SelectProperties": ["DocId", "UniqueId", "Title", "Path", "FileType", "SPWebUrl"],
+        // "SortList": []
+      }
+    }
+
+     console.log(body)
+
+    const response = await axios.post(
+      url, body,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json;odata=verbose",
+        },
+      }
+    );
+    console.log(response)
+    return response;
+  } catch (error) {
+    console.error("Error submitting search:", error);
+    throw error;
+  }
+}
+
+/**
  * Submit feedback
  * @param comment
  * @param name

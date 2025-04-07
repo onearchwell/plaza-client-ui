@@ -40,7 +40,7 @@ const nextConfig = {
     });
 
     // Disable Webpack minimization to debug Terser issues
-    config.optimization.minimizer = [];
+    // config.optimization.minimizer = [];
 
     return config;
   }

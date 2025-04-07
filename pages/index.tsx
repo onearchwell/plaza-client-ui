@@ -3,6 +3,7 @@
 import React from "react"
 import { useState, useEffect } from "react"
 import { ErrorBoundary } from "../components/ErrorBoundary"
+import Cookies from "js-cookie";
 import {
   Stack,
   MessageBar,
@@ -115,6 +116,7 @@ const App: React.FC = () => {
   const [breadcrumbItems, setBreadcrumbItems] = useState<IBreadcrumbItem[]>([])
   const [firstLevelKeys, setFirstLevelKeys] = useState<Set<string>>(new Set());
   const [landingPageId, setLandingPageId] = useState<string | null>("");
+  const [group, setGroup] = useState<string | null>("");
 
   const fetchItems = async (group) => {
     try {
@@ -240,7 +242,8 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     console.log("Logging out...")
-    // Add your logout logic here
+    Cookies.remove("me", { path: "/" });
+    router.push("/logout");
   }
 
   // Load TreeView from SharePoint
@@ -254,37 +257,32 @@ const App: React.FC = () => {
     const firstLevelKeys = new Set(treeData.map(item => item.key));
     console.log(firstLevelKeys)
     setFirstLevelKeys(firstLevelKeys)
-  };  
-
-  const checkMe = (user: string): boolean =>  {
-    const allowedPermissions = ["ResCtrUser", "ResCtrWHL", "ResCtrMC", "ResCtrRev", "ResCtrCOR"];
-    // const key = "encryptme"
-    // const encryptedMessage = CryptoJS.SHA256(user).toString(CryptoJS.enc.Hex);
-    // console.log('Encrypted Message:', encryptedMessage);
-    // const bytes = CryptoJS.AES.decrypt(encryptedMessage, key);
-    // const decryptedMessage = bytes.toString(CryptoJS.enc.Utf8);
-    // console.log('Decrypted Message:', decryptedMessage);
-    return allowedPermissions.includes(user)
-  }
+  }; 
 
   useEffect(() => {
 
-    // Check if it is a redirect page
-    const url = new URL(window.location.href);
-    const params = new URLSearchParams(url.search);   
-    // const val = localStorage.getItem('me');
-    const group = params.has("me")? params.get("me"): ""
+    const getCookieValue = (name: string) => {
+      const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
+      return match ? decodeURIComponent(match[2]) : null;
+    };
+  
+    const group = getCookieValue("me");
     console.log(group)
-    if (!group || !checkMe(group)) {
+    if (!group) {
       router.push("/unauthorized");
       return;
     }
+    setGroup(group)
 
     const mapped_group = UserPermissionGroup.find(item => item.group === group);
     setLandingPageId(mapped_group.landingPageId)
     console.log("Landing page for group is: ",mapped_group.landingPageId)
     loadTreeView(group)
  
+
+    // Check if it is a redirect page
+    const url = new URL(window.location.href);
+    const params = new URLSearchParams(url.search);   
     if (params.has("fileId") && params.get("fileId")) {
       const idValue = params.get("fileId");
       console.log("Extracted fileId:", idValue);
@@ -302,72 +300,78 @@ const App: React.FC = () => {
     return <div>{error}</div>
   }
 
-  // async function searchLibraryItemsCont(searchQuery: string): Promise<ITreeItem[]> {
-  //   if (!searchQuery) return [];
+  async function searchLibraryItemsCont(searchQuery: string): Promise<ITreeItem[]> {
+    if (!searchQuery) return [];
   
-  //   try {
-  //     // Build SharePoint Search API Query
-  //     // const searchQueryBuilder = SearchQueryBuilder()
-  //     //   .text(`path:"${encodeURI(props.siteUrl.replace(/\/$/, ''))}/" ${searchQuery}*`)
-  //     //   .selectProperties("DocId", "UniqueId", "Title", "Path", "FileType", "SPWebUrl") // Use UniqueId to get actual List Item ID
-  //     //   .rowLimit(50);
+    try {
+      // Build SharePoint Search API Query
+      // const searchQueryBuilder = SearchQueryBuilder()
+      //   .text(`path:"${encodeURI(props.siteUrl.replace(/\/$/, ''))}/" ${searchQuery}*`)
+      //   .selectProperties("DocId", "UniqueId", "Title", "Path", "FileType", "SPWebUrl") // Use UniqueId to get actual List Item ID
+      //   .rowLimit(50);
   
-  //     // const searchResults = await sp.search(searchQueryBuilder);
+      // const searchResults = await sp.search(searchQueryBuilder);
 
-  //     // Deepthi - Call Search API here
-  //     const searchResults = {}
+      // Call Search API here
+      const searchResults = await fetch('/api/sharepoint/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: searchQuery
+        })
+      });
   
-  //     let treeItems: ITreeItem[] = [];
+      // let treeItems: ITreeItem[] = [];
   
-  //     if (searchResults.PrimarySearchResults.length > 0) {
-  //       treeItems = await Promise.all(
-  //         searchResults.PrimarySearchResults.map(async (item) => {
-  //           // Exclude folders and items with null FileType
-  //           if (!item.FileType || item.FileType === "folder") {
-  //             return null;
-  //           }
+      // if (searchResults?.PrimarySearchResults.length > 0) {
+      //   treeItems = await Promise.all(
+      //     searchResults?.PrimarySearchResults.map(async (item) => {
+      //       // Exclude folders and items with null FileType
+      //       if (!item.FileType || item.FileType === "folder") {
+      //         return null;
+      //       }
   
-  //           let listItemId = null;
+      //       let listItemId = null;
   
-  //           if (item.UniqueId) {
-  //             try {
-  //               // Fetch List Item using UniqueId
-  //               const listItem = await (await sp.web.getFileById(item.UniqueId).getItem()).select("Id")();
-  //               listItemId = listItem.Id.toString(); // Extract List Item ID
-  //             } catch (error) {
-  //               console.warn("Could not fetch ListItemID for:", item.Path, error);
-  //             }
-  //           }
+      //       if (item.UniqueId) {
+      //         try {
+      //           // Fetch List Item using UniqueId
+      //           const listItem = await (await sp.web.getFileById(item.UniqueId).getItem()).select("Id")();
+      //           listItemId = listItem.Id.toString(); // Extract List Item ID
+      //         } catch (error) {
+      //           console.warn("Could not fetch ListItemID for:", item.Path, error);
+      //         }
+      //       }
   
-  //           const relativePath = decodeURIComponent(new URL(item.Path).pathname);
-  //           console.log("relativePath", "color: green; font-weight: bold;", relativePath);
+      //       const relativePath = decodeURIComponent(new URL(item.Path).pathname);
+      //       console.log("relativePath", "color: green; font-weight: bold;", relativePath);
   
-  //           return {
-  //             key: listItemId || item.DocId.toString(), // Use ListItem ID if available, fallback to DocId
-  //             label: item.Title || new URL(item.Path).pathname.split("/").pop(), // Extract filename
-  //             data: { url: relativePath, isFolder: false },
-  //           };
-  //         })
-  //       );
+      //       return {
+      //         key: listItemId || item.DocId.toString(), // Use ListItem ID if available, fallback to DocId
+      //         label: item.Title || new URL(item.Path).pathname.split("/").pop(), // Extract filename
+      //         data: { url: relativePath, isFolder: false },
+      //       };
+      //     })
+      //   );
   
-  //       // Remove null values (folders & items with null FileType)
-  //       treeItems = treeItems.filter(Boolean);
-  //     }
+      //   // Remove null values (folders & items with null FileType)
+      //   treeItems = treeItems.filter(Boolean);
+      // }
   
-  //     console.log("%cSearch Results:", "color: green; font-weight: bold;", treeItems);
-  //     return treeItems;
-  //   } catch (error) {
-  //     console.error("Error searching library items:", error);
-  //     return [];
-  //   }
-  // }
+      // console.log("%cSearch Results:", "color: green; font-weight: bold;", treeItems);
+      // return treeItems;
+    } catch (error) {
+      console.error("Error searching library items:", error);
+      return [];
+    }
+  }
 
   async function handleSearch () {
     setSearchLoading(true)
-    // const items = await searchLibraryItemsCont(searchText);
-    // console.log("****** Search Returns****",items)
-    // setSearchResults(items)
-    // setSearchLoading(false)
+    const items = await searchLibraryItemsCont(searchText);
+    console.log("****** Search Returns****",items)
+    setSearchResults(items)
+    setSearchLoading(false)
   };
 
   // Render file details view
@@ -377,48 +381,11 @@ const App: React.FC = () => {
     console.log("Rendering file : ", selectedItem)
 
     return (
-      // <Stack className={styles.fileDetails}>
-      //   <Stack
-      //     horizontal
-      //     horizontalAlign="space-between"
-      //     verticalAlign="center"
-      //     style={{
-      //       display: 'flex',
-      //       flexDirection: 'column',
-      //       alignItems: "start",
-      //       overflow: 'auto',
-      //       marginBottom: '10px',
-      //       fontFamily: fontFamily,
-      //     }}
-      //   >
           <DocumentViewer fileUrl={selectedItem.serverRelativeUrl} />
-      //   </Stack>
-      // </Stack>
     )
   }
-  
-
-  const openInNewTab = () => {
-  //   if (selectedItem)
-  //     window.open(selectedItem.serverRelativeUrl, "_blank");
-  // };
-
-  // const handleDownload = () => {
-    const fileUrl = selectedItem.serverRelativeUrl; // Change to your URL
-    const newWindow = window.open(fileUrl, '_blank');
-  
-    // Optional: for more control, you can create a link dynamically
-    if (newWindow) {
-      const a = newWindow.document.createElement('a');
-      a.href = fileUrl;
-      a.download = ''; // Or set a specific filename: 'report.pdf'
-      newWindow.document.body.appendChild(a);
-      a.click();
-    }
-  };
 
   async function onTreeItemExpandCollapse(item: ITreeItem, isExpanded: boolean) {
-
   }
 
   async function handleItemSelect(item: ITreeItem): Promise<void> {
@@ -489,7 +456,7 @@ const App: React.FC = () => {
         </div>
       }
     >
-      <Header onLogout={handleLogout} />
+      <Header user={group} onLogout={handleLogout} />
       <Stack className={styles.documentTreeView} styles={stackfontStyles}>
         <Stack tokens={stackTokens}>
 
@@ -625,32 +592,6 @@ const App: React.FC = () => {
              <div className={styles.documentListContainer}>
                 <div className={styles.breadcrumbContainer} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Breadcrumb items={breadcrumbItems} maxDisplayedItems={5} className={styles.breadcrumb} styles={{ list: { flexWrap: 'nowrap' } }} />
-
-                  {/* {selectedItem && !selectedItem.isFolder?
-                  <PrimaryButton onClick={openInNewTab}
-                    iconProps={{ iconName: 'Download' }} 
-                    styles={{
-                      root: {
-                        backgroundColor: 'white',
-                        borderColor: '#970067',
-                        color: '#970067',
-                        borderRadius: '5px',
-                        minHeight: '30px',
-                        minWidth: '30px',
-                        padding: '1px 1px'
-                      },
-                      rootHovered: {
-                        backgroundColor: '#7a0053',
-                        borderColor: '#7a0053'
-                      },
-                      rootPressed: {
-                        borderColor: '#5e003f'
-                      }
-                    }}
-                  >
-                  </PrimaryButton>
-                : undefined
-              } */}
               </div>
 
                 {/* Content */}

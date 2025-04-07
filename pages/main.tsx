@@ -1,25 +1,35 @@
 import { GetServerSideProps } from "next";
-import { ParsedUrlQuery } from "querystring";
 import * as CryptoJS from 'crypto-js';
+import * as cookie from "cookie";
 
-const allowedPermissions = ["ResCtrUser", "ResCtrWL", "ResCtrRev", "ResCtrCOR", "RecCtrMC"];
+const allowedPermissions = ["ResCtrUser", "ResCtrWHL", "ResCtrRev", "ResCtrCOR", "ResCtrMC"];
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { query } = context;
+  const { query, res } = context;
   const userId = context.query.me as string;
+  const env = context.query.env as string;
+  const fileId = context.query.fileId as string;
 
-  const checkMe = (user: string): boolean =>  {
-    // const key = "hufhwflkcklscklsnsdcjdsck"
-    // const encryptedMessage = CryptoJS.AES.encrypt(user, key).toString();
-    // console.log('Encrypted Message:', encryptedMessage);
-    // const bytes = CryptoJS.AES.decrypt(encryptedMessage, key);
-    // const decryptedMessage = bytes.toString(CryptoJS.enc.Utf8);
-    // console.log('Decrypted Message:', decryptedMessage);
-    
-    return allowedPermissions.includes(user)
+  const checkMe = (user: string, env: string): boolean =>  {
+
+    let result = false;
+    if (env == "dev") {
+      if(allowedPermissions.includes(user)) {
+        result = true
+      }
+    } else {
+      // const key = "hufhwflkcklscklsnsdcjdsck"
+      // const encryptedMessage = CryptoJS.AES.encrypt(user, key).toString();
+      // console.log('Encrypted Message:', encryptedMessage);
+      // const bytes = CryptoJS.AES.decrypt(encryptedMessage, key);
+      // const decryptedMessage = bytes.toString(CryptoJS.enc.Utf8);
+      // console.log('Decrypted Message:', decryptedMessage);
+      result = false;
+    }
+    return result
   }
 
-  if (!userId || !checkMe(userId)) {
+  if (!userId || !checkMe(userId, env)) {
     return {
       redirect: {
         destination: "/unauthorized",
@@ -27,10 +37,20 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   }
-  const queryString = new URLSearchParams(query as ParsedUrlQuery).toString();
+
+  res.setHeader(
+    "Set-Cookie",
+    cookie.serialize("me", userId, {
+      path: "/",
+      httpOnly: false,
+      maxAge: 60 * 60 * 24,
+    })
+  );
+
+  const queryString = fileId ? `/?fileId=${fileId}` : "/";
   return {
     redirect: {
-      destination: `/?${queryString}`, // Pass entire query string
+      destination: `${queryString}`, // Pass entire query string
       permanent: false,
     },
   };
