@@ -3,6 +3,7 @@ import * as React from "react"
 import { Stack, Text, Link, DialogFooter, Dialog, DialogType } from "@fluentui/react"
 import { MessageSquare } from "lucide-react"
 import { useState } from "react"
+import Chatbot from "./chatbot/Chatbot"
 import {
   Label,
   PrimaryButton,
@@ -236,6 +237,7 @@ export const Footer: React.FC<FooterProps> = ({ onFeedbackClick, spContext , cur
         }}
       >
       </Dialog>
+      <Chatbot />
     </div>
     
   )

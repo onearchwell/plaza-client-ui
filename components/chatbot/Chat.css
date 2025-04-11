@@ -1,0 +1,445 @@
+/* Chat.css */
+  .chatBox {
+    display: flex;
+    flex-direction: column;
+    /* gap: 1px; */
+    overflow-y: scroll;
+    flex: 1;
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+.plazaHeaderLogo{
+font-size: 12px;
+color: white;
+/* flex: 1; */
+width: 156px;
+font-family: "Century Gothic";
+border-radius: 18%;
+font-weight: bold;
+}
+.resize-handle {
+  position: absolute;
+  /* background: rgba(0, 76, 67, 0.3); */
+  z-index: 1000;
+  /* transition: background 0.2s ease; */
+}
+
+/* .resize-handle:hover {
+  background: rgba(0, 76, 67, 0.6);
+} */
+
+.corner-handle {
+  top: 0;
+  left: 0;
+  width: 15px;
+  height: 15px;
+  cursor: nwse-resize;
+}
+
+.top-handle {
+  top: 0;
+  left: 15px;
+  right: 0;
+  height: 5px;
+  cursor: ns-resize;
+}
+
+.left-handle {
+  left: 0;
+  top: 15px;
+  bottom: 0;
+  width: 3px;
+  cursor: ew-resize;
+}
+
+.chatContainer {
+  position: fixed;
+  bottom: 60px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 490px;
+  width: 370px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 18px;
+  /* padding: 20px; */
+  background-color: rgb(255, 255, 255);
+  backdrop-filter: blur(15px);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+  overflow: hidden;
+  animation: fadeIn 0.3s;
+
+  resize: none;
+  min-width: 300px;
+  min-height: 400px;
+  /* position: fixed;
+  bottom: 60px;
+  right: 20px; */
+  transition: none; /* Disable transitions during resize */
+
+} 
+.headerChatbot{
+  display: flex;
+  position: relative;
+  /* border: 1px solid gray; */
+  height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background: rgb(0, 76, 67);
+  z-index: 1;
+}
+
+.headerChatbot svg {
+  font-size: 15px;
+  color: rgb(248, 246, 246); /* Set default icon color */
+  background: none;
+  background-color: none;
+  transition: color 0.3s ease;
+  text-shadow: #000;
+}
+  .message {
+    max-width: 60%;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    animation: fadeIn 0.3s;
+  }
+  
+  .userMessage {
+    align-self: flex-end; /* Align the message to the right */
+    background-color: rgb(0, 125, 122); /* Background teal color for user messages */
+    color: #fff; /* Text color for user messages */
+    font-size: 12px; /* Font size */
+    /* font-family: "Segoe UI", "Helvetica Neue", sans-serif; */
+    font-family: "Arial Regular";
+    max-width: 80%;/* Make the message wider */
+    padding-inline: 2px;
+    /* Padding inside the message box */
+    border-radius: 5px; /* Rounded corners */
+    word-wrap: break-word; /* Ensure long words break to the next line */
+    text-align: left;
+     /* Margin between messages */
+    
+  }
+  
+  .botMessage {
+    align-self: flex-start;
+    /* background-color: rgb(248,249,250); */
+    color: #000;
+    font-size: 12px; /* Adjust the font size to be smaller */
+    /* font-family: "Segoe UI", "Helvetica Neue", sans-serif; */
+    font-family: "Arial Regular";
+    /* max-width: 80%; Make the message wider */
+    padding: 10px;
+    border-radius: 3px;
+    word-wrap: break-word; /* Ensure long words break to the next line */
+    text-align: left;
+    /* min-width: 100px;
+    height: 25px;
+    line-height: 2px; */
+    /* position: relative; */
+    /* min-height: 40px;  Ensure consistent height during typing */
+  }
+  
+  .popupMessage {
+    position: fixed;
+    bottom: 65px;
+    right: 20px;
+    background-color: #007bff;
+    color: #fff;
+    padding: 5px 5px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+    font-size: 14px;
+    z-index: 1000;
+    animation: fadeIn 0.5s, fadeOut 0.5s 4.5s;
+}
+
+.listContent {
+  word-wrap: break-word;
+  /* display: inline-block; */
+}
+
+.deleteIcon {
+  /* Positions the button relative to the chatbox */
+  /* gap: 14px; */
+  /* border-radius: 50%; Makes the icon circular */
+  /* background-color: rgba(255, 255, 255, 0.1); Light transparent background  */
+  background: none;
+  border: none;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.closeIcon {
+  /* Positions the button relative to the chatbox */
+  /* gap: 14px; */
+  /* border-radius: 50%; Makes the icon circular */
+  /* background-color: rgba(255, 255, 255, 0.1); Light transparent background  */
+  background: none;
+  border: none;
+  color: white;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.closeIcon:hover,
+.deleteIcon:hover {
+  transform: scale(1.1); /* Slight zoom effect */
+}
+
+.closeIcon svg,
+.deleteIcon svg {
+  font-size: 15px;
+  color: rgb(248, 246, 246); /* Set default icon color */
+  background: none;
+  background-color: none;
+  transition: color 0.3s ease;
+  text-shadow: #000;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fade-out animation */
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+}
+
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .chatbotButton {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3);
+    font-size: 30px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.chatbot-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.1);
+}
+
+
+  .toggleButton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-top: 5px;
+    border-radius: 5px;
+    font-size: 12px;
+  }
+  
+  .toggleButton:hover {
+    background-color: #0056b3;
+  }
+  
+  .citationList {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 5px;
+    font-size: 12px;
+  }
+  
+  .citationItem {
+    margin-bottom: 5px;
+  }
+
+  .logo {
+    width: 60px;  /* Adjust size as needed */
+    border-radius: 10%;
+    /* max-height: 40px; Adjust size as needed */
+    /* margin-bottom: 5px;  */
+    /* position: absolute; 
+    top: 5px; 
+    left: 5px;  */
+  }
+
+/* CSS for circulating circle */
+.loading-circle {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ddd;
+  border-top-color: #666;  /* Creates the circulating effect */
+  border-radius: 50%;
+  animation: circulate 1s linear infinite;
+}
+
+@keyframes circulate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+  .sendButton {
+    padding: 10px 15px;
+    background-color: rgb(0, 76, 67);
+    color: #fff;
+    border-radius: 15px;
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .micButton {
+    padding: 10px 15px;
+    color: #fff;
+    background: transparent; /* Ensure no background */
+    /* background-color: rgb(0, 76, 67); */
+    border-radius: 15px;
+    border: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .sendButton:hover,
+  .micButton:hover {
+    transform: scale(1.1); /* Slight zoom effect */
+  }
+  
+  .micButton.listening {
+    background-color: #ff4d4d; /* Red when listening */
+  }
+  
+  .micButton.notListening {
+    background-color: rgb(0, 76, 67); /* Blue when not listening */
+  }
+
+  .footerChatbot{
+    display: flex;
+    /* height: 50px; */
+    gap: 2px;
+    align-items: center;
+    justify-content: space-between;
+    /* background: rgb(223, 185, 185); */
+    box-shadow: 0 0 3px 0px #331919;
+  }
+
+  .input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 5px;
+    border: none;
+    background-color: #fff;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+    outline: none; /* Prevents blue outline on focus */
+  }
+  
+  .input:focus {
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2); /* Slightly stronger shadow on focus */
+  }
+
+  .messageContainer {
+    display: flex;
+    align-items: flex-start; /* Aligns messages from the top */
+    margin: 10px 0;
+    position: relative; /*Needed for icon positioning*/
+    max-width: 80%;
+  }
+  
+  .botIcon {
+    font-size: 20px;
+    color: #007bff;
+    position: absolute;
+    top: 0;
+    left: -25px; /* Moves icon to the left of the message */
+  }
+  
+  .userIcon {
+    align-self: flex-end;
+    font-size: 20px;
+    color: rgb(255, 255, 255);
+    position: absolute;
+    background-color: rgb(111, 22, 200);
+    border-radius: 50%;
+    top: 1px;
+    right: -25px; /* Moves icon to the right of the message */
+  }
+  
+  .messageContent {
+    /* background: #f1f1f1;
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 80%;
+    word-wrap: break-word; */
+
+    padding: 0px;
+  }
+  
+  /* Add to your Chat.css */
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 17%;
+  transform: translateX(-50%);
+  background-color: rgb(0, 76, 67);
+  color: white;
+  padding: 1px 2px;
+  border-radius: 4px;
+  font-size: 9px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  margin-bottom: 8px;
+  z-index: 1020;
+}
+
+.tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0, 76, 67, 0.8) transparent transparent transparent;
+}
+
+.tooltip-container:hover .tooltip {
+  opacity: 1;
+}
