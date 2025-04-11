@@ -33,20 +33,59 @@ async function getSharePointAccessToken(): Promise<string> {
   }
 }
 
+async function getSharePointAppAccessToken(): Promise<string> {
+  try {
+    const tenantId = process.env.TENANT_ID!;
+    const clientId = process.env.CLIENT_ID!;
+    const clientSecret = process.env.CLIENT_SECRET!;
+    const siteUrl = process.env.NEXT_PUBLIC_SHAREPOINT_URL!;
+
+    const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+    const response = await axios.post(
+      tokenUrl,
+      new URLSearchParams({
+        grant_type: "client_credentials",
+        client_id: clientId,
+        client_secret: clientSecret,
+        scope: `https://plazahomemortgage.sharepoint.com/.default`,
+      }),
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
+
+    return response.data.access_token;
+  } catch (error) {
+    console.error("Error fetching SharePoint access token:", error);
+    throw error;
+  }
+}
+
 /**
  * Fetches items from the root of the SharePoint document library.
  */
-export async function fetchRootItems() {
+export async function fetchRootItems(currentPath, permission) {
   try {
     const accessToken = await getSharePointAccessToken();
     const siteUrl = process.env.NEXT_PUBLIC_SHAREPOINT_URL!;
-    const permission = process.env.NEXT_PUBLIC_PERMISSION!;
+
+    if(!permission)
+      permission = "ResCtrUser"
     const libraryTitle = process.env.NEXT_PUBLIC_DOCUMENT_LIBRARY_NAME!; // Document Library Name
 
-    const response = await axios.get(
+    const listTitle = "Plaza Resource Center"
+    const url = `${siteUrl}/_api/web/lists/getbytitle('${encodeURIComponent(listTitle)}')/items` +
+      // `?$filter=FileDirRef eq '${currentPath}' and Permissions eq '${permission}' and OData__ModerationStatus eq 0 ` +
+      `?$filter=FileDirRef eq '${currentPath}' and Permissions eq '${permission}' ` +
+      `&$orderby=Priority asc` + 
+      `&$select=ID,Title,FileRef,FileLeafRef,FileDirRef,FSObjType,Permissions,UniqueId,Priority,OData__ModerationStatus`;
+
+      console.log(url)
+
+    const response = await axios.get(url,
       // `${siteUrl}/_api/web/lists/getbytitle('Plaza%20Resource%20Center')/items?$filter=FSObjType eq 0 and Permissions eq '${permission}' and Status eq 'Published'&$select=ID,UniqueId,FileLeafRef,FileRef,Title,Permissions,Status`,
       // `${siteUrl}/_api/web/lists/getbytitle('Plaza%20Resource%20Center')/items?$filter=FSObjType eq 0 and Permissions eq '${permission}'&$select=ID,UniqueId,FileLeafRef,FileRef,Title,Permissions,Status`,
-      `${siteUrl}/_api/web/lists/getbytitle('Plaza%20Resource%20Center')/items?$filter=FSObjType eq 0 and OData__ModerationStatus eq 0 and Permissions eq '${permission}'&$select=ID,UniqueId,FileLeafRef,FileRef,Title,Permissions`,
+      // `${siteUrl}/_api/web/lists/getbytitle('${encodeURIComponent(listTitle)}')/items?$filter=FSObjType eq 0 and OData__ModerationStatus eq 0 and Permissions eq '${permission}'&$select=ID,UniqueId,FileLeafRef,FileRef,Title,Permissions`,
 
       {
         headers: {
@@ -55,9 +94,11 @@ export async function fetchRootItems() {
         },
       }
     );
+    console.log(response.data.d.results)
     return response.data.d.results;
   } catch (error) {
     console.error("Error fetching root items:", error);
+    console.log(error.response)
     throw error;
   }
 }
@@ -67,13 +108,12 @@ export async function fetchRootItems() {
  * @param folderPath The server-relative path of the folder (e.g., "/sites/siteName/Shared Documents/folderName")
  */
 export async function fetchFolderItems(folderPath: string) {
+  let result = [];
   try {
     const accessToken = await getSharePointAccessToken();
     const siteUrl = process.env.NEXT_PUBLIC_SHAREPOINT_URL!;
-
     const response = await axios.get(
-      `${siteUrl}/_api/web/getFolderByServerRelativePath('${folderPath}')/folders`,
-      // `${siteUrl}/_api/web/getFolderByServerRelativePath('${folderPath}')/files`,
+      `${siteUrl}/_api/web/getFolderByServerRelativePath(decodedurl='${folderPath}')/folders`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -81,8 +121,20 @@ export async function fetchFolderItems(folderPath: string) {
         },
       }
     );
+    result.push(response.data.d.results)
+    const response1 = await axios.get(
+      `${siteUrl}/_api/web/getFolderByServerRelativePath(decodedurl='${folderPath}')/files`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json;odata=verbose",
+        },
+      }
+    );
+    result.push(response1.data.d.results)
+    console.log(result)
 
-    return response.data.d.results;
+    return result;
   } catch (error) {
     console.error("Error fetching folder items:", error);
     throw error;
@@ -124,7 +176,7 @@ export async function fetchFileURL(filePath: string) {
  */
 export async function searchQuery(queryString: string) {
   try {
-    const accessToken = await getSharePointAccessToken();
+    const accessToken = await getSharePointAppAccessToken();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!
     const url = process.env.NEXT_PUBLIC_SHAREPOINT_URL! + "/_api/search/postquery"
     const query = "path:" + encodeURI(siteUrl.replace(/\/$/, '')) + "/" + queryString + "*"
@@ -132,9 +184,6 @@ export async function searchQuery(queryString: string) {
 
     const body = {
       "request": {
-        "__metadata": {
-          "type": "Microsoft.Office.Server.Search.REST.SearchRequest"
-        },
         // "HitHighlightedProperties": [],
         // "Properties": [],
         // "Querytext": "Plaza* Path:\"https://plazahomemortgage.sharepoint.com/sites/DocumentManagerDev/Plaza%20Resource%20Center/\"",
@@ -142,7 +191,10 @@ export async function searchQuery(queryString: string) {
         // "RefinementFilters": [],
         // "ReorderingRules": [],
         "RowLimit": 50,
-        "SelectProperties": ["DocId", "UniqueId", "Title", "Path", "FileType", "SPWebUrl"],
+        "SelectProperties": {
+          "results": ["DocId", "UniqueId", "Title", "Path", "FileType", "SPWebUrl"]
+        }
+        // "SelectProperties": ["DocId", "UniqueId", "Title", "Path", "FileType", "SPWebUrl"],
         // "SortList": []
       }
     }
@@ -153,8 +205,9 @@ export async function searchQuery(queryString: string) {
       url, body,
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
-          Accept: "application/json;odata=verbose",
+          "Authorization": `Bearer ${accessToken}`,
+          "Accept": "application/json;odata=verbose",
+          "Content-Type": "application/json;odata=verbose"
         },
       }
     );
@@ -162,6 +215,9 @@ export async function searchQuery(queryString: string) {
     return response;
   } catch (error) {
     console.error("Error submitting search:", error);
+    console.log(error.response);
+    console.log(error.response.data.error.code)
+    console.log(error.response.data.error.message)
     throw error;
   }
 }
@@ -177,7 +233,6 @@ export async function submitFeedback(comment: string, name: string, fileId: stri
   try {
     const accessToken = await getSharePointAccessToken();
     const siteUrl = process.env.NEXT_PUBLIC_SHAREPOINT_URL! + "/_api/web/lists/getByTitle('FeedbackList')/items"
-    console.log(siteUrl)
 
     const response = await axios.post(
       siteUrl,
@@ -194,7 +249,6 @@ export async function submitFeedback(comment: string, name: string, fileId: stri
         },
       }
     );
-    console.log(response)
     return response;
   } catch (error) {
     console.error("Error submitting feedback:", error);

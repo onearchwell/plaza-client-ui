@@ -9,11 +9,15 @@ const DocxViewer: React.FC<{ docxUrl: string, fileBlob: Blob}> = ({ docxUrl, fil
 
   useEffect(() => {
     const downloadAndDisplayFile = async () => {
-      const arrayBuffer = await fileBlob.arrayBuffer();
+      try {
+        const arrayBuffer = await fileBlob.arrayBuffer();
 
-      if (containerRef.current) {
-        containerRef.current.innerHTML = ""; // Clear old content
-        await docx.renderAsync(arrayBuffer, containerRef.current); // No need for third argument
+        if (containerRef.current) {
+          containerRef.current.innerHTML = ""; // Clear old content
+          await docx.renderAsync(arrayBuffer, containerRef.current); // No need for third argument
+        }
+      } catch (err) {
+        
       }
     };
 

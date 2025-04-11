@@ -13,7 +13,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const checkMe = (user: string, env: string): boolean =>  {
 
     let result = false;
-    if (env == "dev") {
+    if (!env) {
       if(allowedPermissions.includes(user)) {
         result = true
       }

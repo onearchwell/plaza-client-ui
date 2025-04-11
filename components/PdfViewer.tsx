@@ -1,12 +1,11 @@
 import * as React from 'react';
-import {PrimaryButton, Stack } from '@fluentui/react';
 import { useState, useEffect } from 'react';
 
 const PdfViewer: React.FC<{ pdfUrl: string, fileBlob: Blob }> = ({ pdfUrl, fileBlob }) => {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
 
-    useEffect(() => {
-      if(fileBlob) {
+  useEffect(() => {
+    if(fileBlob) {
         const downloadAndDisplayFile = async () => {
             const fileObjectUrl = URL.createObjectURL(fileBlob);
             setFileUrl(fileObjectUrl);

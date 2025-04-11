@@ -21,7 +21,7 @@ import {
   TooltipHost,
   DirectionalHint,
 } from "@fluentui/react"
-import { Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
+import { Tree, TreeItem, TreeItemLayout, TreeOpenChangeData } from "@fluentui/react-components";
 import { IIconProps } from '@fluentui/react/lib/Icon';
 import { Footer } from "../components/Footer"
 import { initializeIcons } from "@fluentui/font-icons-mdl2"
@@ -35,6 +35,7 @@ import styles from '../styles/component.module.scss'
 import DocumentViewer from "../components/DocumentViewer"
 import { useRouter } from "next/router"
 import Header from "../components/Header"
+import CustomBreadcrumb from "../components/CustomBreadcrumb";
 
 initializeIcons()
 const fontFamily: string = "Arial, sans-serif"
@@ -45,19 +46,30 @@ const stackfontStyles: IStackStyles = {
   },
 };
 
-const UserPermissionGroup = [
-  {"group":"ResCtrUser", "landingPageId": "259"},
-  {"group":"ResCtrTesters", "landingPageId": "259"},
-  {"group":"ResCtrMC", "landingPageId": "39"},
-  {"group":"ResCtrWHL", "landingPageId": "36"},
-  {"group":"ResCtrCOR", "landingPageId": "38"},
-  {"group":"ResCtrRev", "landingPageId": "34"},
+// Dev Server
+const UserPermissionGroupDev = [
+  {"group":"ResCtrUser", "landingPage": process.env.NEXT_PUBLIC_PREURL+ "/Welcome to Plaza_Associates.pdf",  "landingPageId": "259"},
+  {"group":"ResCtrMC", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Forms - Matrices - Checklists/Landing Page Forms Matrices Checklists - Mini-Correspondent.pdf", "landingPageId": "39"},
+  {"group":"ResCtrWHL", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Forms - Matrices - Checklists/Landing Page Forms, Matrices and Checklists - Wholesale.pdf","landingPageId": "36"},
+  {"group":"ResCtrCOR", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Communications/Landing Page Communications External_Correspondent.pdf", "landingPageId": "38"},
+  {"group":"ResCtrRev", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Reverse/Landing Page Reverse - Reverse.pdf", "landingPageId": "34"},
+
 ]
+
+//Prod Server
+const UserPermissionGroupProd = [
+  {"group":"ResCtrUser", "landingPage": process.env.NEXT_PUBLIC_PREURL+ "/Welcome to Plaza_Associates.pdf",  "landingPageId": "2321"},
+  {"group":"ResCtrMC", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Forms - Matrices - Checklists/Landing Page Forms Matrices Checklists - Mini-Correspondent.pdf", "landingPageId": "100"},
+  {"group":"ResCtrWHL", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Forms - Matrices - Checklists/Landing Page Forms, Matrices and Checklists - Wholesale.pdf","landingPageId": "99"},
+  {"group":"ResCtrCOR", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Communications/Landing Page Communications External_Correspondent.pdf", "landingPageId": "1422"},
+  {"group":"ResCtrRev", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Reverse/Landing Page Reverse - Reverse.pdf", "landingPageId": "613"},
+ ]
 
 interface ITreeItem {
   key: string;
   uniqueId: string;
   name: string;
+  fileId: number,
   children?: ITreeItem[];
   path: string;
   isfolder: boolean;
@@ -93,6 +105,7 @@ interface IDocumentItem {
   nextReview?: string,
   permissions?: string[],
   rawdata?: any,
+  item?:any
 }
 
 const App: React.FC = () => {
@@ -109,20 +122,28 @@ const App: React.FC = () => {
   const [enableSearch, seteEableSearch] = useState<boolean>(false)
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<ITreeItem[]>([])
-  const [treeitems, setTreeitems] = useState<ITreeItem[]>([])
+  const [treeitems, setTreeItems] = useState<ITreeItem[]>([])
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<IDocumentItem | null>(null)
   const [currentPath, setCurrentPath] = useState<string>("")
   const [breadcrumbItems, setBreadcrumbItems] = useState<IBreadcrumbItem[]>([])
-  const [firstLevelKeys, setFirstLevelKeys] = useState<Set<string>>(new Set());
   const [landingPageId, setLandingPageId] = useState<string | null>("");
+  const [landingPageFolder, setLandingPageFolder] = useState<string | null>("");
   const [group, setGroup] = useState<string | null>("");
+  const [loadedChildren, setLoadedChildren] = useState([]);
+  const [loadingMap, setLoadingMap] = useState<{ [key: string]: boolean }>({});
 
-  const fetchItems = async (group) => {
+  const fetchItems = async (folderPath) => {
     try {
-      const endpoint = "/api/sharepoint/root"
 
-      const response = await fetch(endpoint)
+      const response = await fetch('/api/sharepoint/root', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          path: folderPath,
+          group: group
+        })
+      });
       if (!response.ok) {
         throw new Error(`Error: ${response.status} - ${response.statusText}`);
       }
@@ -138,8 +159,6 @@ const App: React.FC = () => {
   };
 
   const updateBreadcrumbItems = (inputUrl: string, title: string) => {
-    // console.log("inputUrl -----------",inputUrl)
-    // console.log("title -----------",title)
     let parts: any[] = []
     if (inputUrl !== process.env.NEXT_PUBLIC_PREURL) 
       parts = inputUrl ? inputUrl.split("/").filter((p) => p) : [];
@@ -147,13 +166,8 @@ const App: React.FC = () => {
     const filteredParts = parts.slice(-2);
     const startIndex = parts.length - filteredParts.length;
     const seenPaths = new Set<string>();
-    seenPaths.add("sites/ResourceCenter/" + process.env.NEXT_PUBLIC_DOCUMENT_LIBRARY_NAME);
+    seenPaths.add(process.env.NEXT_PUBLIC_PREURL);
     const breadcrumbs: IBreadcrumbItem[] = [
-      // {
-      //   key: "sites/ResourceCenter/" + props.documentLibraryName,
-      //   text: props.documentLibraryName,
-      //   ...(isAdmin && { onClick: () => loadLiveDocuments("/sites/ResourceCenter/" + props.documentLibraryName) }),
-      // },
       ...filteredParts.map((part, index) => {
         const path = parts.slice(0, startIndex + index + 1).join("/");
         if (index == 1) {
@@ -164,7 +178,6 @@ const App: React.FC = () => {
         return {
           key: path,
           text: part,
-          // ...(isAdmin && { onClick: () => loadLiveDocuments("/" + path) }),
         };
       })
       .filter((breadcrumb) => {
@@ -178,66 +191,76 @@ const App: React.FC = () => {
     console.log("Breadcrumb updated:", breadcrumbs);    
   }
 
-  const generateNumericId = () => {
-    return Math.floor(100000000000 + Math.random() * 900000000000).toString();
-  };
+  const buildChildTree = async (folderPath: string, group: string): Promise<ITreeItem[]> => {
 
-  const buildTree = (items: any[]): ITreeItem[] => {
-    const root: ITreeItem = { key: "root", name: "root", uniqueId: "", children: [], path: "/", isfolder: true};
-    
-    items.forEach(item => {
-      const parts = item.FileRef.split("/").filter((p: any) => p).slice(2);
-        let currentLevel = root.children!; // Start at root level
-        let path = ""
-        
-        parts.forEach((part: string, index: number) => {
-            const existingNode = currentLevel.find(node => node.name === part);
-            path = path + "/" + part
-            if (existingNode) {
-                currentLevel = existingNode.children!;
-            } else {
-                const title = item.Title? item.Title : item.FileLeafRef
-                const newNode: ITreeItem = {
-                    key: index === parts.length - 1 ? item.Id.toString() : generateNumericId(),
-                    name: index === parts.length - 1 ? title : part,
-                    uniqueId: index === parts.length - 1 ? item.UniqueId : "",
-                    path: index === parts.length - 1 ? item.FileRef : path,
-                    children: index === parts.length - 1 ? undefined : [],
-                    isfolder: index === parts.length - 1 ? false : true,
-                    iconProps: index === parts.length - 1 ? {iconName: 'Page'} : {iconName: 'Folder'},
-                };
+    let currentLevel: ITreeItem[] = []
 
-                if(landingPageId) {
-                  console.log("In landingPageId :", landingPageId)
-                  if(item.ID == landingPageId) {
-                      const url = process.env.NEXT_PUBLIC_SHAREPOINT_URL + "/_layouts/15/Embed.aspx?UniqueId="+newNode.uniqueId
-                      const listItem: IDocumentItem = {
-                      id: newNode.key,
-                      name: newNode.name,
-                      isFolder: newNode.isfolder,
-                      // serverRelativeUrl: url
-                      serverRelativeUrl: newNode.path
-                    }
-                    setSelectedItem(listItem)
-                    setSelectedKey(newNode.key)
-                    updateBreadcrumbItems(newNode.path, newNode.name)
-                    setLandingPageId(null)
-                  }
-                }
-                currentLevel.push(newNode);
-                if (newNode.children) {
-                    currentLevel = newNode.children;
-                }
+    const items = await fetchItems(folderPath)
+    // console.log(items)
+    items.forEach(async item => {
+      // if (item.ItemCount > 0) {  
+      if(group == "ResCtrUser" || item.Permissions?.results?.includes(group)) {   
+        const title = item.Title? item.Title : item.FileLeafRef
+        const newNode: ITreeItem = {
+            key: item.UniqueId,
+            name: title,
+            fileId: item.Id.toString(),
+            uniqueId: item.UniqueId,
+            path: item.FileRef,
+            children: item.FSObjType == 1?  [] : undefined,
+            isfolder: item.FSObjType == 1,
+            iconProps: item.FSObjType == 1? {iconName: 'Folder'} : {iconName: 'Page'},
+        };
+
+        if(newNode.isfolder && landingPageFolder) {
+          if(newNode.name == landingPageFolder) {
+            currentLevel.push(newNode);
+            newNode.children = await buildChildTree(newNode.path, group);
+            setLandingPageFolder(null)
+          }
+        }
+
+        if(!newNode.isfolder && landingPageId) {
+          if(item.ID == landingPageId) {
+              const listItem: IDocumentItem = {
+              id: newNode.key,
+              name: newNode.name,
+              isFolder: newNode.isfolder,
+              serverRelativeUrl: newNode.path
             }
-        });
+            setSelectedItem(listItem)
+            setSelectedKey(newNode.key)
+            updateBreadcrumbItems(newNode.path, newNode.name)
+            setLandingPageId(null)
+          }
+        }
+        console.log(newNode.name)
+        currentLevel.push(newNode);
+      }
     });
-    return root.children!;
-  };
+    return currentLevel;
+  }
 
-  const getAllFiles = async (group): Promise<ITreeItem[]> => {
-    let treeViewItems: ITreeItem[] = []
-    const data = await fetchItems(group)
-    return data
+  const buildRootTree = async (folderPath: string, group: string): Promise<ITreeItem[]> => {
+    const root: ITreeItem = { key: "root", name: "root", uniqueId: "", fileId:0, children: [], path: "/", isfolder: true};
+    let currentLevel = root.children!;
+    const parts = folderPath.split("/").filter((p: any) => p).slice(2);
+    parts.forEach((part: string, index: number) => {
+      const existingNode = currentLevel.find(node => node.name === part);
+      if (existingNode)
+        currentLevel = existingNode.children!;
+      else {
+        const newNode: ITreeItem = { key: "Plaza Resource Center", name: "Plaza Resource Center", uniqueId: "", fileId:0, children: [], path: process.env.NEXT_PUBLIC_PREURL, isfolder: true};
+        currentLevel.push(newNode);
+        if (newNode.children) {
+            currentLevel = newNode.children;
+        }
+      }
+    })
+    console.log("currentLevel is :",currentLevel)
+    const result = await buildChildTree(folderPath, group)
+    currentLevel.push(...result);
+    return root.children!;
   };
 
   const handleLogout = () => {
@@ -248,15 +271,27 @@ const App: React.FC = () => {
 
   // Load TreeView from SharePoint
   const loadTreeView = async (group) => {
-    console.log("Loading Tree View data")
-    const data = await getAllFiles(group)
-    console.log(data)
-    const treeData = buildTree(data);
-    console.log(treeData)
-    setTreeitems(treeData)
-    const firstLevelKeys = new Set(treeData.map(item => item.key));
-    console.log(firstLevelKeys)
-    setFirstLevelKeys(firstLevelKeys)
+    const treeData = await buildRootTree(process.env.NEXT_PUBLIC_PREURL, group);
+    setTreeItems(treeData)
+
+    // Lazy Load First level children
+    // const children = treeData[0].children;
+    // for (let index = 0; index < children.length; index++) {
+    //   const item = children[index];
+    //   if (item.isfolder) {
+    //     const result = await buildChildTree(item.path, group);
+    //     if (result?.length > 0)
+    //       children[index].children.push(...result);
+    //     else {
+    //       console.log("Removing folder as it is empty :", item.name, item.key)
+    //       treeData[0].children = treeData[0].children.filter(child => child.key !== item.key);
+    //       // setTreeItems(treeData);
+    //     }
+    //   }
+    // }
+    // console.log(treeData)
+    // setTreeItems(treeData);
+
   }; 
 
   useEffect(() => {
@@ -267,15 +302,22 @@ const App: React.FC = () => {
     };
   
     const group = getCookieValue("me");
-    console.log(group)
     if (!group) {
       router.push("/unauthorized");
       return;
     }
     setGroup(group)
 
-    const mapped_group = UserPermissionGroup.find(item => item.group === group);
+    let mapped_group = UserPermissionGroupDev.find(item => item.group === group);
+
+    if (process.env.NEXT_PUBLIC_ENV == "Production")
+      mapped_group = UserPermissionGroupProd.find(item => item.group === group);
+
     setLandingPageId(mapped_group.landingPageId)
+    const parts = mapped_group.landingPage ? mapped_group.landingPage.split("/").filter((p) => p) : [];
+    if(!parts[3].includes("."))
+      setLandingPageFolder(parts[3])
+    console.log(parts[3])
     console.log("Landing page for group is: ",mapped_group.landingPageId)
     loadTreeView(group)
  
@@ -378,32 +420,73 @@ const App: React.FC = () => {
   const renderFileDetails = () => {
     if (!selectedItem || selectedItem.isFolder) return null
 
-    console.log("Rendering file : ", selectedItem)
+    // console.log("Rendering file : ", selectedItem)
 
     return (
           <DocumentViewer fileUrl={selectedItem.serverRelativeUrl} />
     )
   }
 
+  const updateTreeItemChildren = (treeItems: ITreeItem[], pathSegments: string[], newChildren: ITreeItem[]): ITreeItem[] => {
+    // Base case: If pathSegments is empty, no need to search further
+    if (pathSegments.length === 0) return treeItems;
+  
+    const segment = pathSegments[0];  // Get the first path segment
+    const remainingSegments = pathSegments.slice(1);  // Remaining segments after the first one
+  
+    return treeItems.map(item => {
+      // If the current item matches the segment, update it
+      if (item.name === segment) {
+        if (remainingSegments.length === 0) {
+          // If we are at the last segment, update the children
+          return { ...item, children: newChildren };
+        }
+  
+        // Otherwise, recursively update the children
+        return {
+          ...item,
+          children: updateTreeItemChildren(item.children || [], remainingSegments, newChildren)
+        };
+      }
+  
+      // If the current item doesn't match the segment, just return it unchanged
+      return item;
+    });
+  };
+
   async function onTreeItemExpandCollapse(item: ITreeItem, isExpanded: boolean) {
+    // Deepthi Handle the recursive logic
+    if (item.isfolder && !loadedChildren.includes(item.path)) {
+      console.log("Fetch children")
+      loadedChildren.push(item.path)
+      setLoadedChildren(loadedChildren)
+      setLoadingMap(prev => ({ ...prev, [item.key]: true }));
+
+      item.children = await buildChildTree(item.path, group);
+    
+      console.log(item.children)
+      // Push the childen back to treeItems
+      const pathSegments = item.path.split("/").filter((p: any) => p).slice(2);
+      const updatedTreeItems = updateTreeItemChildren(treeitems, pathSegments, item.children);
+      setTreeItems(updatedTreeItems)
+      setLoadingMap(prev => ({ ...prev, [item.key]: false }));
+    }
   }
 
   async function handleItemSelect(item: ITreeItem): Promise<void> {
     console.log("Items selected: ", item);
     updateBreadcrumbItems(item.path, item.name)
+    setSelectedKey(item.key) //Unique
     if(item) {
         if(item.isfolder) {
           onTreeItemExpandCollapse(item, true);
-          setSelectedKey(item.key) //Unique
-        }
-      if (isAdmin || !item.isfolder) {
-        const url = process.env.NEXT_PUBLIC_SHAREPOINT_URL + "/_layouts/15/Embed.aspx?UniqueId="+item.uniqueId
+        } else {
         const listItem: IDocumentItem = {
           id: item.key,
           name: item.name,
           isFolder: item.isfolder,
-          // serverRelativeUrl: url
-          serverRelativeUrl: item.path
+          serverRelativeUrl: item.path,
+          item: item
         };
         setSelectedItem(listItem)
       }
@@ -412,10 +495,9 @@ const App: React.FC = () => {
 
   const renderTreeItems = (items: any[]) => {
     return items.map((item) => (
-      <TreeItem className={styles.treeViewItem} key={item.key} itemType={item.children?.length? "branch" : "leaf"}
-            value={item.name} onClick={() => handleItemSelect(item)} 
-            style={{ marginLeft: item.children && item.children.length > 0 ? '20px' : '40px'}}
-            // iconProps={item.iconProps} 
+      <TreeItem className={styles.treeViewItem} key={item.key} itemType={item.isfolder? "branch" : "leaf"}
+            value={item.path} onClick={() => handleItemSelect(item)} 
+            style={{ marginLeft: item && item.isfolder? '10px' : '20px'}}
             > 
                 <TreeItemLayout>
                   <TooltipHost
@@ -424,16 +506,18 @@ const App: React.FC = () => {
                           directionalHint: DirectionalHint.bottomLeftEdge, // Position the tooltip to the right
                         }}
                       >
-                        <div
-                          className={styles.treeViewItem}
-                        >
-                           {item.isfolder? <FolderRegular /> : <DocumentRegular />}
+                        <div className={`${styles.treeViewItem} ${selectedKey === item.key ? styles.selectedItem : ''}`}>
+                        {loadingMap[item.key] && (
+                            <Spinner size={SpinnerSize.xSmall} />
+                          )}
+                          {/* {item.isfolder? <FolderRegular /> : <DocumentRegular />} */}
                           {item.name}
+
                         </div>
                   </TooltipHost>
                 </TreeItemLayout>
-              {item.children && item.children.length > 0 && (
-          <Tree>{renderTreeItems(item.children)}</Tree>
+              {item.isfolder && (
+          <Tree onOpenChange={() => handleItemSelect(item)} >{renderTreeItems(item.children)}</Tree>
         )}
       </TreeItem>
     ));
@@ -486,8 +570,6 @@ const App: React.FC = () => {
                     }
                   }}
                   onChange={(e:any) => {
-                    console.log(e.target.value, 'e.target.value*****')
-                    console.log(!e.target.value, 'e.target.value*****')
                     if(!e.target.value) seteEableSearch(false)
                     setSearchText(e.target.value)
                     if (e.key === 'Enter') {
@@ -530,7 +612,8 @@ const App: React.FC = () => {
                 />
                 <Stack className={styles.treeView}>
                 {!enableSearch ?
-                  <Tree aria-label="Dropdown Tree" /*defaultOpenItems={["1"]}*/>
+                  <Tree aria-label="Dropdown Tree" defaultOpenItems={[process.env.NEXT_PUBLIC_PREURL]} defaultValue={selectedKey ? [selectedKey] : []} 
+                    >
                     {renderTreeItems(treeitems)}
                   </Tree>
                 : searchLoading?  
@@ -578,7 +661,7 @@ const App: React.FC = () => {
                 undefined
                 }
 
-                {enableSearch && !searchResults.length && <Stack
+                {enableSearch && (!searchResults || !searchResults.length) && <Stack
                 verticalAlign="center"
                 horizontalAlign="center"
                 styles={{ root: { minHeight: 400 } }}
@@ -591,7 +674,8 @@ const App: React.FC = () => {
               {/* Document list or file details */}
              <div className={styles.documentListContainer}>
                 <div className={styles.breadcrumbContainer} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Breadcrumb items={breadcrumbItems} maxDisplayedItems={5} className={styles.breadcrumb} styles={{ list: { flexWrap: 'nowrap' } }} />
+                  {/* <Breadcrumb items={breadcrumbItems} maxDisplayedItems={50} className={styles.breadcrumb} styles={{ list: { flexWrap: 'nowrap' } }} /> */}
+                  <CustomBreadcrumb breadcrumbItems={breadcrumbItems} setSelectedItem={setSelectedItem}/>
               </div>
 
                 {/* Content */}
