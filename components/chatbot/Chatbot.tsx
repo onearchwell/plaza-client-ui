@@ -317,7 +317,7 @@ useEffect(() => {
           <ol>
             {JSON.parse(message.text).choices[0]?.message?.context?.citations.map((citation: Citation, i: number) => (
               <li key={i}>
-                <details className='listContent'><summary>{fileName(citation.filepath)}</summary><ReactMarkdown>{citation.content}</ReactMarkdown></details>
+                <summary>{fileName(citation.filepath)}</summary>
                 {"-"}
                 <a 
                   href={completeFilePath(citation.filepath.includes("root:/") ? citation.filepath.split("root:/")[1] : citation.filepath)} 
