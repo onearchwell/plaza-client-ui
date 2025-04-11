@@ -690,7 +690,7 @@ const App: React.FC = () => {
           )}
         </Stack>
        
-        <Footer fileId={selectedItem?.id} currentPath={selectedItem?.serverRelativeUrl || 'Plaza Resource Center'} onFeedbackClick={() => { setIsFeedbackFormOpen(!isFeedbackFormOpen) }} />
+        <Footer permission={group} fileId={selectedItem?.id} currentPath={selectedItem?.serverRelativeUrl || 'Plaza Resource Center'} onFeedbackClick={() => { setIsFeedbackFormOpen(!isFeedbackFormOpen) }} />
       </Stack>
        {/* {JSON.stringify(selectedItem)} */}
     </ErrorBoundary>

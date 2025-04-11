@@ -1,5 +1,5 @@
 // import axios from 'axios';
-import { dev, prod } from "./constant";
+// import { dev, prod } from "./constant";
 
 export const sleep = (milliseconds: number) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -8,8 +8,10 @@ export const sleep = (milliseconds: number) => {
 export const callApi = async (inputMessage: string, permissionGroup: string, sessionId: string) => {
   try {
     // console.log("Query:", { inputMessage, permissionGroup });
+    const BASE_URL = process.env.NEXT_PUBLIC_CHATBOT_BASE_URL!;
+    console.log("permissionGroup:", BASE_URL, permissionGroup);
     const response = await fetch(
-      prod.baseUrl,
+      BASE_URL,
       {
         method: 'POST',
         headers: {
@@ -47,14 +49,15 @@ export const callApi = async (inputMessage: string, permissionGroup: string, ses
   }
 };
 
-export const completeFilePath = (filepath: string) => {  
+export const completeFilePath = (filepath: string) => { 
   
+  const SITE = process.env.NEXT_PUBLIC_CHATBOT_SITE!;
   const sanitizedFilePath = filepath.startsWith('/')
     ? filepath.substring(1)
     : filepath;
 
   // Construct the complete SharePoint URL
-  const completePath = `https://plazahomemortgage.sharepoint.com/sites/${prod.site}/Plaza%20Resource%20Center/${encodeURI(
+  const completePath = `https://plazahomemortgage.sharepoint.com/sites/${SITE}/Plaza%20Resource%20Center/${encodeURI(
     sanitizedFilePath
   )}`;
 

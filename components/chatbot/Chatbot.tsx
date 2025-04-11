@@ -31,7 +31,7 @@ type Message = {
   text: string
 };
 
-const Chatbot = () => {
+const Chatbot = ({permission}) => {
   const [messages, setMessages] = useState<Message[]>([{ user: 'bot', text: JSON.stringify({"choices": [{"message": {"content": 'How can I assist you today?'}}]})}]);
   const [input, setInput] = useState('');
   const [toggle, setToggle] = useState(false);
@@ -216,7 +216,8 @@ useEffect(() => {
       setIsBotTyping(true);
       console.log(input);
       setMessages(messages => [...messages, { user: 'user', text: input }]);
-      const apiResponse = await callApi(input.trim(), "ResCtrUser", sessionId);
+      console.log("permission", permission); 
+      const apiResponse = await callApi(input.trim(), permission, sessionId);
       console.log("apiResponse", apiResponse);
       if (apiResponse) {
         setMessages(prevMessages => [
