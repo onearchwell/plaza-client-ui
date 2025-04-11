@@ -9,7 +9,6 @@ export const callApi = async (inputMessage: string, permissionGroup: string, ses
   try {
     // console.log("Query:", { inputMessage, permissionGroup });
     const BASE_URL = process.env.NEXT_PUBLIC_CHATBOT_BASE_URL!;
-    console.log("permissionGroup:", BASE_URL, permissionGroup);
     const response = await fetch(
       BASE_URL,
       {
