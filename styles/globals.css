@@ -345,7 +345,7 @@ text-shadow: #000;
   }
 }
 .chatbotButton {
-  position: fixed;
+  /* position: fixed; */
   bottom: 20px;
   right: 20px;
   background-color: rgba(0, 76, 67, 0.9);

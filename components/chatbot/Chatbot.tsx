@@ -342,11 +342,11 @@ useEffect(() => {
         <FaCommentDots onClick={() => setToggle(!toggle)} />
       </button>
  
-      {!toggle && (
+      {/* {!toggle && (
         <div className="popupMessage">
           How can I assist you?
         </div>
-      )}
+      )} */}
  
       {toggle && (
         <div className="chatContainer" ref={chatContainerRef}>

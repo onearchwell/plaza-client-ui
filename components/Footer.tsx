@@ -238,7 +238,7 @@ export const Footer: React.FC<FooterProps> = ({ onFeedbackClick, spContext , cur
         }}
       >
       </Dialog>
-      <Chatbot permission={permission}/>
+      {/* <Chatbot permission={permission}/> */}
     </div>
     
   )

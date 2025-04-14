@@ -17,23 +17,26 @@
   }
 
   .treeViewContainer {
-    width: 250px;
-    min-width: 100px;
-    max-width: 400px;
+    // width: 250px;
+    // min-width: 300px;
+    // max-width: 400px;
     height: 100%;
-    resize: horizontal;
-    overflow: auto;
     max-height: 100%;
-    overflow-y: auto;
     padding: 0rem;
     margin: 0px;
-    overflow: auto;
     font-family: Arial, sans-serif;
     font-size: 12px;
     background-color: white;
     color: black !important;
     font-weight: 500;
     border: 1px solid rgb(240, 239, 239);
+  }
+
+  .searchContainer {
+    :global(.ms-TextField-fieldGroup) {
+      height: 40px;
+      font-family: "Arial, sans-serif";
+    }
   }
   
   .treeView {

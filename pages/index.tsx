@@ -36,6 +36,8 @@ import DocumentViewer from "../components/DocumentViewer"
 import { useRouter } from "next/router"
 import Header from "../components/Header"
 import CustomBreadcrumb from "../components/CustomBreadcrumb";
+import Chatbot from "../components/chatbot/Chatbot";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../components/resizable"
 
 initializeIcons()
 const fontFamily: string = "Arial, sans-serif"
@@ -132,6 +134,8 @@ const App: React.FC = () => {
   const [group, setGroup] = useState<string | null>("");
   const [loadedChildren, setLoadedChildren] = useState([]);
   const [loadingMap, setLoadingMap] = useState<{ [key: string]: boolean }>({});
+  const[initialLoadDone, setInitialLoadDone] = useState<string | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   const fetchItems = async (folderPath) => {
     try {
@@ -156,6 +160,7 @@ const App: React.FC = () => {
       console.error("Error fetching items:", err)
       setError("Failed to fetch items. Please try again later.")
     }
+    return []
   };
 
   const updateBreadcrumbItems = (inputUrl: string, title: string) => {
@@ -188,7 +193,7 @@ const App: React.FC = () => {
     ];
 
     setBreadcrumbItems(breadcrumbs);
-    console.log("Breadcrumb updated:", breadcrumbs);    
+    // console.log("Breadcrumb updated:", breadcrumbs);    
   }
 
   const buildChildTree = async (folderPath: string, group: string): Promise<ITreeItem[]> => {
@@ -215,6 +220,7 @@ const App: React.FC = () => {
         if(newNode.isfolder && landingPageFolder) {
           if(newNode.name == landingPageFolder) {
             currentLevel.push(newNode);
+            console.log("Calling sub folder load")
             newNode.children = await buildChildTree(newNode.path, group);
             setLandingPageFolder(null)
           }
@@ -234,7 +240,6 @@ const App: React.FC = () => {
             setLandingPageId(null)
           }
         }
-        console.log(newNode.name)
         currentLevel.push(newNode);
       }
     });
@@ -257,7 +262,6 @@ const App: React.FC = () => {
         }
       }
     })
-    console.log("currentLevel is :",currentLevel)
     const result = await buildChildTree(folderPath, group)
     currentLevel.push(...result);
     return root.children!;
@@ -273,26 +277,37 @@ const App: React.FC = () => {
   const loadTreeView = async (group) => {
     const treeData = await buildRootTree(process.env.NEXT_PUBLIC_PREURL, group);
     setTreeItems(treeData)
-
-    // Lazy Load First level children
-    // const children = treeData[0].children;
-    // for (let index = 0; index < children.length; index++) {
-    //   const item = children[index];
-    //   if (item.isfolder) {
-    //     const result = await buildChildTree(item.path, group);
-    //     if (result?.length > 0)
-    //       children[index].children.push(...result);
-    //     else {
-    //       console.log("Removing folder as it is empty :", item.name, item.key)
-    //       treeData[0].children = treeData[0].children.filter(child => child.key !== item.key);
-    //       // setTreeItems(treeData);
-    //     }
-    //   }
-    // }
-    // console.log(treeData)
-    // setTreeItems(treeData);
-
+    console.log(treeData)
+    console.log("Loaded")
   }; 
+
+  const loadFileItem = async (fileId) => {
+    const response = await fetch('/api/sharepoint/fileById', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fileId: fileId,
+        group: group
+      })
+    });
+    if (!response.ok) {
+      router.push("/error");
+      return;
+    }
+    if (!response.body) {
+      router.push("/error");
+      return;
+    }
+    const data = await response.json();
+    console.log(data)
+      
+    const parts = data.FileRef ? data.FileRef.split("/").filter((p) => p) : [];
+    console.log(parts[3])
+    if(!parts[3].includes("."))
+      setLandingPageFolder(parts[3])
+    setInitialLoadDone("Done")
+    // console.log("Landing page id is :",landingPageId)
+  }
 
   useEffect(() => {
 
@@ -308,20 +323,6 @@ const App: React.FC = () => {
     }
     setGroup(group)
 
-    let mapped_group = UserPermissionGroupDev.find(item => item.group === group);
-
-    if (process.env.NEXT_PUBLIC_ENV == "Production")
-      mapped_group = UserPermissionGroupProd.find(item => item.group === group);
-
-    setLandingPageId(mapped_group.landingPageId)
-    const parts = mapped_group.landingPage ? mapped_group.landingPage.split("/").filter((p) => p) : [];
-    if(!parts[3].includes("."))
-      setLandingPageFolder(parts[3])
-    console.log(parts[3])
-    console.log("Landing page for group is: ",mapped_group.landingPageId)
-    loadTreeView(group)
- 
-
     // Check if it is a redirect page
     const url = new URL(window.location.href);
     const params = new URLSearchParams(url.search);   
@@ -329,10 +330,25 @@ const App: React.FC = () => {
       const idValue = params.get("fileId");
       console.log("Extracted fileId:", idValue);
       setLandingPageId(idValue)
-      console.log("Landing page id is :",landingPageId)
+      loadFileItem(idValue)
+    } else {
+    
+      let mapped_group = UserPermissionGroupDev.find(item => item.group === group);
+      if (process.env.NEXT_PUBLIC_ENV == "Production")
+        mapped_group = UserPermissionGroupProd.find(item => item.group === group);
+
+      setLandingPageId(mapped_group.landingPageId)
+      const parts = mapped_group.landingPage ? mapped_group.landingPage.split("/").filter((p) => p) : [];
+      if(!parts[3].includes("."))
+        setLandingPageFolder(parts[3])
+      setInitialLoadDone("Done")
     }
-    setLoading(false)
   }, [loading, router])
+
+  useEffect(() => {
+    setLoading(false)
+    loadTreeView(group)
+  }, [loading, initialLoadDone])
 
   if (loading) {
     return <div>Loading...</div>
@@ -359,49 +375,41 @@ const App: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: searchQuery
+          query: searchQuery,
+          group: group
         })
       });
+      const data = await searchResults.json();
+      console.log(data.results)
   
-      // let treeItems: ITreeItem[] = [];
+      let treeItems: ITreeItem[] = [];
   
-      // if (searchResults?.PrimarySearchResults.length > 0) {
-      //   treeItems = await Promise.all(
-      //     searchResults?.PrimarySearchResults.map(async (item) => {
-      //       // Exclude folders and items with null FileType
-      //       if (!item.FileType || item.FileType === "folder") {
-      //         return null;
-      //       }
+      if (data?.results?.length > 0) {
+        treeItems = await Promise.all(
+          data?.results.map(async (item) => {
+            // Exclude folders and items with null FileType
+            if (!item.FSObjType || item.FSObjType === "1") {
+              return null;
+            }
+            return {
+                key: item.UniqueId,
+                name: item.Title? item.Title : item.FileLeafRef,
+                fileId: item.ID,
+                uniqueId: item.UniqueId,
+                path: item.FileRef,
+                children: item.FSObjType == 1?  [] : undefined,
+                isfolder: item.FSObjType == 1,
+                iconProps: item.FSObjType == 1? {iconName: 'Folder'} : {iconName: 'Page'},
+            };
+          })
+        );
   
-      //       let listItemId = null;
+        // Remove null values (folders & items with null FileType)
+        treeItems = treeItems.filter(Boolean);
+      }
   
-      //       if (item.UniqueId) {
-      //         try {
-      //           // Fetch List Item using UniqueId
-      //           const listItem = await (await sp.web.getFileById(item.UniqueId).getItem()).select("Id")();
-      //           listItemId = listItem.Id.toString(); // Extract List Item ID
-      //         } catch (error) {
-      //           console.warn("Could not fetch ListItemID for:", item.Path, error);
-      //         }
-      //       }
-  
-      //       const relativePath = decodeURIComponent(new URL(item.Path).pathname);
-      //       console.log("relativePath", "color: green; font-weight: bold;", relativePath);
-  
-      //       return {
-      //         key: listItemId || item.DocId.toString(), // Use ListItem ID if available, fallback to DocId
-      //         label: item.Title || new URL(item.Path).pathname.split("/").pop(), // Extract filename
-      //         data: { url: relativePath, isFolder: false },
-      //       };
-      //     })
-      //   );
-  
-      //   // Remove null values (folders & items with null FileType)
-      //   treeItems = treeItems.filter(Boolean);
-      // }
-  
-      // console.log("%cSearch Results:", "color: green; font-weight: bold;", treeItems);
-      // return treeItems;
+      console.log("%cSearch Results:", "color: green; font-weight: bold;", treeItems);
+      return treeItems;
     } catch (error) {
       console.error("Error searching library items:", error);
       return [];
@@ -457,7 +465,6 @@ const App: React.FC = () => {
   async function onTreeItemExpandCollapse(item: ITreeItem, isExpanded: boolean) {
     // Deepthi Handle the recursive logic
     if (item.isfolder && !loadedChildren.includes(item.path)) {
-      console.log("Fetch children")
       loadedChildren.push(item.path)
       setLoadedChildren(loadedChildren)
       setLoadingMap(prev => ({ ...prev, [item.key]: true }));
@@ -474,7 +481,6 @@ const App: React.FC = () => {
   }
 
   async function handleItemSelect(item: ITreeItem): Promise<void> {
-    console.log("Items selected: ", item);
     updateBreadcrumbItems(item.path, item.name)
     setSelectedKey(item.key) //Unique
     if(item) {
@@ -495,8 +501,9 @@ const App: React.FC = () => {
 
   const renderTreeItems = (items: any[]) => {
     return items.map((item) => (
-      <TreeItem className={styles.treeViewItem} key={item.key} itemType={item.isfolder? "branch" : "leaf"}
+      <TreeItem className={styles.treeViewItem} key={item.key} itemType={item.isfolder? "branch" : "leaf" }
             value={item.path} onClick={() => handleItemSelect(item)} 
+            onOpenChange={async (e) => { handleItemSelect(item)}}
             style={{ marginLeft: item && item.isfolder? '10px' : '20px'}}
             > 
                 <TreeItemLayout>
@@ -558,8 +565,22 @@ const App: React.FC = () => {
         </Stack>
           ) : (
             <Stack horizontal tokens={stackTokens} className={styles.contentContainer}>
+              <ResizablePanelGroup direction="horizontal">
+              <ResizablePanel
+                defaultSize={20}
+                minSize={10}
+                maxSize={35}
+                collapsible={true}
+                collapsedSize={4}
+                collapsed={isCollapsed}
+                onCollapse={() => setIsCollapsed(true)}
+                onExpand={() => setIsCollapsed(false)}
+                className="border-r"
+              >
+              
+              <div className={`h-full overflow-y-auto ${isCollapsed ? "hidden" : "block"}`}>
               <Stack className={styles.treeViewContainer}>
-                <TextField 
+                <TextField className={styles.searchContainer}
                   placeholder="Search..." 
                   value={searchText}
                   onKeyDown={(e)=>{
@@ -606,70 +627,45 @@ const App: React.FC = () => {
                         title="Send"
                         ariaLabel="Send"
                         styles={{ root: { height: '32px', width: '32px' } }} />
+                      <Chatbot permission={group}/>
                         </>
 
                   )}
                 />
                 <Stack className={styles.treeView}>
-                {!enableSearch ?
                   <Tree aria-label="Dropdown Tree" defaultOpenItems={[process.env.NEXT_PUBLIC_PREURL]} defaultValue={selectedKey ? [selectedKey] : []} 
                     >
-                    {renderTreeItems(treeitems)}
+                      {!enableSearch ?
+                        renderTreeItems(treeitems)
+                        :
+                        renderTreeItems(searchResults)
+                      }
                   </Tree>
-                : searchLoading?  
-                <Stack
-                verticalAlign="center"
-                horizontalAlign="center"
-                styles={{ root: { minHeight: 400 } }}
-                >
-                <Spinner size={SpinnerSize.large} label="Loading documents..." />
-            </Stack>:
-                // <TreeView
-                // items={searchResults}
-                // defaultExpanded={false}
-                // selectionMode={TreeViewSelectionMode.Single}
-                // selectChildrenMode={SelectChildrenMode.Select | SelectChildrenMode.Unselect}
-                // showCheckboxes={false}
-                // treeItemActionsDisplayMode={TreeItemActionsDisplayMode.ContextualMenu}
-                // defaultSelectedKeys={selectedKey ? [selectedKey] : []}
-                // expandToSelected={true}
-                // defaultExpandedChildren={false}
-                // // onSelect={onTreeItemSelect}
-                // onExpandCollapse={onTreeItemExpandCollapse}
-                // onRenderItem={(item) => {
-
-                //   const rootFolder = "Plaza Resource Center";
-                //   const relativePath = item.data.url.includes(rootFolder)
-                //     ? item.data.url.split(rootFolder)[1] // Get the part after "Plaza Resource Center"
-                //     : item.data.url; // Fallback to the full path if "Plaza Resource Center" is not found
-
-                //   return <TooltipHost
-                //   content={`${rootFolder}${relativePath}`} // Display the adjusted path
-                //   calloutProps={{
-                //     directionalHint: DirectionalHint.bottomLeftEdge, // Position the tooltip to the right
-                //   }}
-                // >
-                //   <div
-                //     className={styles.treeViewItem}
-                //     onClick={() => handleItemSelect(item)}
-                //   >
-                //     {item.label}
-                //   </div>
-                // </TooltipHost>
-                // }}
-                // />
-                undefined
-                }
-
                 {enableSearch && (!searchResults || !searchResults.length) && <Stack
                 verticalAlign="center"
                 horizontalAlign="center"
                 styles={{ root: { minHeight: 400 } }}
             >
-                No Results
-            </Stack>}
-                </Stack>
-              </Stack>
+            {searchLoading?
+                  <Stack
+                  verticalAlign="center"
+                  horizontalAlign="center"
+                  styles={{ root: { minHeight: 400 } }}
+                  >
+                  <Spinner size={SpinnerSize.large} label="Loading documents..." />
+                  </Stack>:
+                    <Stack>
+                    No Results
+                    </Stack>
+              }
+            </Stack>
+            }
+            </Stack>
+            </Stack>
+          </div>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={80}>
 
               {/* Document list or file details */}
              <div className={styles.documentListContainer}>
@@ -686,6 +682,8 @@ const App: React.FC = () => {
                   }
                 </div>
               </div>
+              </ResizablePanel>
+              </ResizablePanelGroup>
             </Stack>
           )}
         </Stack>

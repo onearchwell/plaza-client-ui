@@ -232,7 +232,7 @@ font-weight: bold;
     }
   }
   .chatbotButton {
-    position: fixed;
+    /* position: fixed; */
     bottom: 20px;
     right: 20px;
     background-color: #007bff;
