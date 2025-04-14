@@ -504,7 +504,7 @@ const App: React.FC = () => {
       <TreeItem className={styles.treeViewItem} key={item.key} itemType={item.isfolder? "branch" : "leaf" }
             value={item.path} onClick={() => handleItemSelect(item)} 
             onOpenChange={async (e) => { handleItemSelect(item)}}
-            style={{ marginLeft: item && item.isfolder? '10px' : '20px'}}
+            style={{  marginLeft: item && item.isfolder? '10px' : '20px'}}
             > 
                 <TreeItemLayout>
                   <TooltipHost
