@@ -9,7 +9,7 @@
   
   .contentContainer {
     display: flex;
-    height: 700px;
+    height: 650px;
     border: 1px solid #F4F4F4;
     border-radius: 1px;
     left: -100px;
@@ -33,10 +33,8 @@
   }
 
   .searchContainer {
-    :global(.ms-TextField-fieldGroup) {
-      height: 40px;
-      font-family: "Arial, sans-serif";
-    }
+    height: 32px;
+    font-family: "Arial, sans-serif";
   }
   
   .treeView {
@@ -164,7 +162,7 @@
     display: flex;
     align-items: center; /* Align content to baseline */
     justify-content: flex-start; /* Align content to the left */
-    height: 100% !important;
+    // height: 100% !important;
     width: 100% !important;
   
     .docx-wrapper {
@@ -235,6 +233,12 @@
 
 .ms-Dropdown-container {
   width: 100%;
+}
+
+.chatbotSearch {
+  height: 40px;
+  padding-bottom: 45px;
+  padding-top: 5px;
 }
 
 // :global{

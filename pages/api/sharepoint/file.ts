@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const lastPart = parts[parts.length - 1];
     res.status(200);
     res.setHeader('Content-Type', accept);
-    res.setHeader('Content-Disposition', `inline; filename="${lastPart}"`);
+    // res.setHeader('Content-Disposition', `inline; filename="${lastPart}"`);
     res.send(response.data);
   } catch (error: any) {
     console.error("Error fetching file details:", error)

@@ -12,7 +12,7 @@ const stackfontStyles: IStackStyles = {
 };
 
 const DocumentViewer: React.FC<{ fileUrl: string}> = ({ fileUrl }) => {
-  const [fileType, setfileType] = useState<string>('unknown');
+  const [fileType, setfileType] = useState<string>('pdf');
   const [fileBlob, setFileBlob] = useState<Blob | null>(null);
 
   // Fetch the DOCX file and convert it to HTML
@@ -32,8 +32,11 @@ const DocumentViewer: React.FC<{ fileUrl: string}> = ({ fileUrl }) => {
 
             if (response.ok) {
                 // Create a blob from the file content and set the URL
-                const fileBlob = await response.blob();
-                setFileBlob(fileBlob);
+                const contentType = response.headers.get('Content-Type');
+                if (contentType === mimeType) {
+                  const fileBlob = await response.blob();
+                  setFileBlob(fileBlob);
+                }
             } else {
                 console.error('Error downloading file:', response.statusText);
             }

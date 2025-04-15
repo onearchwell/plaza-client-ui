@@ -154,7 +154,7 @@ export async function fetchFileURL(filePath: string) {
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          'Accept': 'application/json'
+          // 'Accept': 'application/json'
         },
         responseType: 'arraybuffer'
       }
@@ -276,8 +276,8 @@ export async function fetchByItemId(permission, fileId) {
     let url = ""
 
     url = `${siteUrl}/_api/web/lists/getbytitle('${encodeURIComponent(listTitle)}')/items(${fileId})` +
-      `?$filter=Permissions eq '${permission}' ` +
-      `&$select=ID,Title,FileRef,FileLeafRef,FileDirRef,FSObjType,Permissions,UniqueId,Priority,OData__ModerationStatus`;
+      // `?$filter=Permissions eq '${permission}' ` +
+      `?$select=ID,Title,FileRef,FileLeafRef,FileDirRef,FSObjType,Permissions,UniqueId,Priority,OData__ModerationStatus`;
       console.log(url)
 
     const response = await axios.get(url,
@@ -291,6 +291,7 @@ export async function fetchByItemId(permission, fileId) {
     return response.data.d;
   } catch (error) {
     console.error("Error fetching item:", error);
+    console.log(error.response.data)
     throw error;
   }
 }

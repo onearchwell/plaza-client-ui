@@ -218,11 +218,22 @@ const App: React.FC = () => {
         };
 
         if(newNode.isfolder && landingPageFolder) {
-          if(newNode.name == landingPageFolder) {
+          const parts = landingPageFolder.split("/").filter(p => p);
+          if(newNode.name == parts[0]) {
             currentLevel.push(newNode);
-            console.log("Calling sub folder load")
-            newNode.children = await buildChildTree(newNode.path, group);
-            setLandingPageFolder(null)
+            let currentNodeArray = currentLevel;
+            let currentPath = "";
+            for (const part of parts) {
+              currentPath += (currentPath ? "/" : "") + part;
+              let existingNode = currentNodeArray.find(node => node.name === part);
+              // Load children for the current node
+              // console.log(`Loading children for: ${existingNode.path}`);
+              existingNode.children = await buildChildTree(existingNode.path, group);
+
+              // Move deeper into the tree
+              currentNodeArray = existingNode.children;
+            }
+            setLandingPageFolder(null); 
           }
         }
 
@@ -277,11 +288,11 @@ const App: React.FC = () => {
   const loadTreeView = async (group) => {
     const treeData = await buildRootTree(process.env.NEXT_PUBLIC_PREURL, group);
     setTreeItems(treeData)
-    console.log(treeData)
-    console.log("Loaded")
+    // console.log(treeData)
+    // console.log("Loaded")
   }; 
 
-  const loadFileItem = async (fileId) => {
+  const loadFileItem = async (fileId, group) => {
     const response = await fetch('/api/sharepoint/fileById', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -299,12 +310,18 @@ const App: React.FC = () => {
       return;
     }
     const data = await response.json();
-    console.log(data)
+    if (!data.Permissions.results.includes(group)) {
+      router.push("/error");
+      return;
+    }
       
     const parts = data.FileRef ? data.FileRef.split("/").filter((p) => p) : [];
-    console.log(parts[3])
-    if(!parts[3].includes("."))
-      setLandingPageFolder(parts[3])
+    if(!parts[parts.length-1].includes(".")) {
+      router.push("/error");
+      return;
+    }
+    const folderUrl = parts.slice(3, -1).join("/");
+    setLandingPageFolder(folderUrl)
     setInitialLoadDone("Done")
     // console.log("Landing page id is :",landingPageId)
   }
@@ -330,7 +347,7 @@ const App: React.FC = () => {
       const idValue = params.get("fileId");
       console.log("Extracted fileId:", idValue);
       setLandingPageId(idValue)
-      loadFileItem(idValue)
+      loadFileItem(idValue, group)
     } else {
     
       let mapped_group = UserPermissionGroupDev.find(item => item.group === group);
@@ -572,7 +589,7 @@ const App: React.FC = () => {
                 maxSize={35}
                 collapsible={true}
                 collapsedSize={4}
-                collapsed={isCollapsed}
+                // collapsed={isCollapsed}
                 onCollapse={() => setIsCollapsed(true)}
                 onExpand={() => setIsCollapsed(false)}
                 className="border-r"
@@ -580,6 +597,9 @@ const App: React.FC = () => {
               
               <div className={`h-full overflow-y-auto ${isCollapsed ? "hidden" : "block"}`}>
               <Stack className={styles.treeViewContainer}>
+                <div className={styles.chatbotSearch}>
+                  <Chatbot permission={group}/>
+                </div>
                 <TextField className={styles.searchContainer}
                   placeholder="Search..." 
                   value={searchText}
@@ -627,7 +647,6 @@ const App: React.FC = () => {
                         title="Send"
                         ariaLabel="Send"
                         styles={{ root: { height: '32px', width: '32px' } }} />
-                      <Chatbot permission={group}/>
                         </>
 
                   )}

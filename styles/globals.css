@@ -167,8 +167,8 @@ cursor: ew-resize;
 
 .chatContainer {
 position: fixed;
-bottom: 0px;
-right: 0px;
+bottom: 20px;
+right: 20px;
 display: flex;
 flex-direction: column;
 justify-content: space-between;
@@ -225,7 +225,7 @@ text-shadow: #000;
   align-self: flex-end; /* Align the message to the right */
   background-color: rgb(0, 125, 122); /* Background teal color for user messages */
   color: #fff; /* Text color for user messages */
-  font-size: 12px; /* Font size */
+  font-size: 14px; /* Font size */
   /* font-family: "Segoe UI", "Helvetica Neue", sans-serif; */
   font-family: "Arial Regular";
   max-width: 80%;/* Make the message wider */
@@ -242,7 +242,7 @@ text-shadow: #000;
   align-self: flex-start;
   /* background-color: rgb(248,249,250); */
   color: #000;
-  font-size: 12px; /* Adjust the font size to be smaller */
+  font-size: 14px; /* Adjust the font size to be smaller */
   /* font-family: "Segoe UI", "Helvetica Neue", sans-serif; */
   font-family: "Arial Regular";
   /* max-width: 80%; Make the message wider */
@@ -348,7 +348,7 @@ text-shadow: #000;
 .chatbotButton {
   /* position: fixed; */
   bottom: 20px;
-  right: 20px;
+  right: 60px;
   background-color: rgba(0, 76, 67, 0.9);
   color: #fff;
   border-radius: 50%;
@@ -428,7 +428,7 @@ to {
 
 .sendButton {
   padding: 10px 15px;
-  background-color: rgb(0, 76, 67);
+  background-color: #970067;
   color: #fff;
   border-radius: 15px;
   border: none;
@@ -451,11 +451,11 @@ to {
 }
 
 .micButton.listening {
-  background-color: #ff4d4d; /* Red when listening */
+  background-color: rgb(0, 76, 67);  /* Red when listening */
 }
 
 .micButton.notListening {
-  background-color: rgb(0, 76, 67); /* Blue when not listening */
+  background-color: #970067;/* Blue when not listening */
 }
 
 .footerChatbot{

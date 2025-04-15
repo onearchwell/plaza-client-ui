@@ -314,18 +314,20 @@ useEffect(() => {
       {JSON.parse(message.text).choices[0]?.message?.context?.citations && JSON.parse(message.text).choices[0]?.message?.context?.citations.length > 0 && (
         <details>
           <summary>References</summary>
-          <ol>
+          <ol className="list-decimal ml-6 space-y-2">
             {JSON.parse(message.text).choices[0]?.message?.context?.citations.map((citation: Citation, i: number) => (
               <li key={i}>
-                <summary>{fileName(citation.filepath)}</summary>
-                {"-"}
-                <a 
+                <div><strong>{fileName(citation.filepath)}</strong></div>
+                <div>
+                - <a 
                   href={completeFilePath(citation.filepath.includes("root:/") ? citation.filepath.split("root:/")[1] : citation.filepath)} 
                   target="_blank" 
                   rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:text-blue-800"
                 >
                   File
                 </a>
+                </div>
               </li>
             ))}
           </ol>
@@ -334,19 +336,27 @@ useEffect(() => {
       }
     </div>
     )
-  }  
-
+  }
+  
   return (
-    <div>
-      <button className="chatbotButton">
-        <FaCommentDots onClick={() => setToggle(!toggle)} />
-      </button>
- 
-      {/* {!toggle && (
-        <div className="popupMessage">
-          How can I assist you?
-        </div>
-      )} */}
+    <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <div
+        onClick={() => setToggle(!toggle)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: '#970067',
+          color: 'white',
+          padding: '10px 12px',
+          borderRadius: '8px',
+          gap: '20px',
+          cursor: 'pointer',
+          fontSize: '14px'
+        }}
+      >
+        <span>Got Questions?</span>
+        <FaCommentDots size={22} />
+      </div>
  
       {toggle && (
         <div className="chatContainer" ref={chatContainerRef}>
