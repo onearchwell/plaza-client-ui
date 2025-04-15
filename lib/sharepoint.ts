@@ -278,7 +278,7 @@ export async function fetchByItemId(permission, fileId) {
     url = `${siteUrl}/_api/web/lists/getbytitle('${encodeURIComponent(listTitle)}')/items(${fileId})` +
       // `?$filter=Permissions eq '${permission}' ` +
       `?$select=ID,Title,FileRef,FileLeafRef,FileDirRef,FSObjType,Permissions,UniqueId,Priority,OData__ModerationStatus`;
-      console.log(url)
+    console.log(url)
 
     const response = await axios.get(url,
       {
