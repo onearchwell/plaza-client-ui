@@ -236,7 +236,7 @@ export async function searchQuery(queryString: string, permission: string) {
  */
 export async function submitFeedback(comment: string, name: string, fileId: string, currentPath: string) {
   try {
-    const accessToken = await getSharePointAppAccessToken();
+    const accessToken = await getSharePointAccessToken();
     const siteUrl = process.env.NEXT_PUBLIC_SHAREPOINT_URL! + "/_api/web/lists/getByTitle('FeedbackList')/items"
 
     const response = await axios.post(

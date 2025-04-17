@@ -242,6 +242,7 @@ const App: React.FC = () => {
           if(item.ID == landingPageId) {
               const listItem: IDocumentItem = {
               id: newNode.key,
+              fileId: newNode.fileId.toString(),
               name: newNode.name,
               isFolder: newNode.isfolder,
               serverRelativeUrl: newNode.path
@@ -506,10 +507,10 @@ const App: React.FC = () => {
         } else {
         const listItem: IDocumentItem = {
           id: item.key,
+          fileId: item.fileId.toString(),
           name: item.name,
           isFolder: item.isfolder,
-          serverRelativeUrl: item.path,
-          item: item
+          serverRelativeUrl: item.path
         };
         setSelectedItem(listItem)
       }
@@ -707,7 +708,7 @@ const App: React.FC = () => {
           )}
         </Stack>
        
-        <Footer fileId={selectedItem?.id} currentPath={selectedItem?.serverRelativeUrl || 'Plaza Resource Center'} onFeedbackClick={() => { setIsFeedbackFormOpen(!isFeedbackFormOpen) }} />
+        <Footer fileId={selectedItem?.fileId} currentPath={selectedItem?.serverRelativeUrl || 'Plaza Resource Center'} onFeedbackClick={() => { setIsFeedbackFormOpen(!isFeedbackFormOpen) }} />
       </Stack>
        {/* {JSON.stringify(selectedItem)} */}
     </ErrorBoundary>
