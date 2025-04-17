@@ -136,6 +136,7 @@ const App: React.FC = () => {
   const [loadingMap, setLoadingMap] = useState<{ [key: string]: boolean }>({});
   const[initialLoadDone, setInitialLoadDone] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const[chatbotVisibility, setChatbotVisibility] = useState(false)
 
   const fetchItems = async (folderPath) => {
     try {
@@ -341,6 +342,11 @@ const App: React.FC = () => {
       return;
     }
     setGroup(group)
+
+    if (process.env.NEXT_PUBLIC_CHATBOT_VISIBILITY == "ALL")
+      setChatbotVisibility(true)
+    else if(process.env.NEXT_PUBLIC_CHATBOT_VISIBILITY == "INTERNAL" && group == "ResCtrUser")
+      setChatbotVisibility(true)
 
     // Check if it is a redirect page
     const url = new URL(window.location.href);
@@ -598,9 +604,14 @@ const App: React.FC = () => {
               
               <div className={`h-full overflow-y-auto ${isCollapsed ? "hidden" : "block"}`}>
               <Stack className={styles.treeViewContainer}>
-                <div className={styles.chatbotSearch}>
-                  <Chatbot permission={group}/>
-                </div>
+
+                {chatbotVisibility? 
+                  <div className={styles.chatbotSearch}>
+                    <Chatbot permission={group}/>
+                  </div>
+                  :
+                  undefined
+                }
                 <TextField className={styles.searchContainer}
                   placeholder="Search..." 
                   value={searchText}
