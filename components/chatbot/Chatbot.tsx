@@ -273,6 +273,16 @@ useEffect(() => {
     )
   }
 
+  const DisclaimerChatbot = () => {
+    return (
+      <div className="disclaimer">
+      <small>
+      Disclaimer: This content was generated using AI. While we strive for accuracy, we encourage users to verify important information. We use AI-generated content to increase efficiencies and provide certain insights, but it may not reflect human expertise or opinion.
+      </small>
+      </div>
+    )
+  }
+
   const footerChatbot = () => {
     return (
       <div className='footerChatbot'>
@@ -386,6 +396,7 @@ useEffect(() => {
             </div>
 
           {footerChatbot()}
+          {DisclaimerChatbot()}
         </div>
       )}
     </div>

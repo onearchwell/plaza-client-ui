@@ -232,6 +232,7 @@ const App: React.FC = () => {
 
               // Move deeper into the tree
               currentNodeArray = existingNode.children;
+              //Deepthi - Trigger open on this item
             }
             setLandingPageFolder(null); 
           }
@@ -480,7 +481,6 @@ const App: React.FC = () => {
   };
 
   async function onTreeItemExpandCollapse(item: ITreeItem, isExpanded: boolean) {
-    // Deepthi Handle the recursive logic
     if (item.isfolder && !loadedChildren.includes(item.path)) {
       loadedChildren.push(item.path)
       setLoadedChildren(loadedChildren)
@@ -488,7 +488,7 @@ const App: React.FC = () => {
 
       item.children = await buildChildTree(item.path, group);
     
-      console.log(item.children)
+      // console.log(item.children)
       // Push the childen back to treeItems
       const pathSegments = item.path.split("/").filter((p: any) => p).slice(2);
       const updatedTreeItems = updateTreeItemChildren(treeitems, pathSegments, item.children);
@@ -707,7 +707,7 @@ const App: React.FC = () => {
           )}
         </Stack>
        
-        <Footer permission={group} fileId={selectedItem?.id} currentPath={selectedItem?.serverRelativeUrl || 'Plaza Resource Center'} onFeedbackClick={() => { setIsFeedbackFormOpen(!isFeedbackFormOpen) }} />
+        <Footer fileId={selectedItem?.id} currentPath={selectedItem?.serverRelativeUrl || 'Plaza Resource Center'} onFeedbackClick={() => { setIsFeedbackFormOpen(!isFeedbackFormOpen) }} />
       </Stack>
        {/* {JSON.stringify(selectedItem)} */}
     </ErrorBoundary>

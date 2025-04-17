@@ -558,3 +558,10 @@ border-color: rgba(0, 76, 67, 0.8) transparent transparent transparent;
 opacity: 1;
 }
 
+.disclaimer {
+  margin-top: 0.5rem;
+  color: #777;
+  font-size: 0.75rem;
+  text-align: center;
+}
+

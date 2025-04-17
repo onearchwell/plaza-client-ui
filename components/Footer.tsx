@@ -17,10 +17,9 @@ interface FooterProps {
   sp?: any // Add SharePoint context
   currentPath?: string // Add SharePoint context
   fileId?: string // Add SharePoint context
-  permission?: string
 }
 
-export const Footer: React.FC<FooterProps> = ({ onFeedbackClick, spContext , currentPath, sp, fileId, permission}) => {
+export const Footer: React.FC<FooterProps> = ({ onFeedbackClick, spContext , currentPath, sp, fileId}) => {
   // Get SharePoint site information if available
     const [isFeedbackFormOpen, setIsFeedbackFormOpen] = useState<boolean>(false)
     const [comment, setComment] = useState('');
@@ -238,7 +237,6 @@ export const Footer: React.FC<FooterProps> = ({ onFeedbackClick, spContext , cur
         }}
       >
       </Dialog>
-      {/* <Chatbot permission={permission}/> */}
     </div>
     
   )
