@@ -61,10 +61,10 @@ const UserPermissionGroupDev = [
 //Prod Server
 const UserPermissionGroupProd = [
   {"group":"ResCtrUser", "landingPage": process.env.NEXT_PUBLIC_PREURL+ "/Welcome to Plaza_Associates.pdf",  "landingPageId": "2321"},
-  {"group":"ResCtrMC", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Forms - Matrices - Checklists/Landing Page Forms Matrices Checklists - Mini-Correspondent.pdf", "landingPageId": "100"},
-  {"group":"ResCtrWHL", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Forms - Matrices - Checklists/Landing Page Forms, Matrices and Checklists - Wholesale.pdf","landingPageId": "99"},
-  {"group":"ResCtrCOR", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Communications/Landing Page Communications External_Correspondent.pdf", "landingPageId": "1422"},
-  {"group":"ResCtrRev", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Reverse/Landing Page Reverse - Reverse.pdf", "landingPageId": "613"},
+  {"group":"ResCtrMC", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Welcome to Plaza_MiniCorr.pdf", "landingPageId": "2319"},
+  {"group":"ResCtrWHL", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Welcome to Plaza_Wholesale.pdf","landingPageId": "2378"},
+  {"group":"ResCtrCOR", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Welcome to Plaza_NatCOR.pdf", "landingPageId": "2304"},
+  {"group":"ResCtrRev", "landingPage":process.env.NEXT_PUBLIC_PREURL+ "/Welcome to Plaza_Reverse.pdf", "landingPageId": "2293"},
  ]
 
 interface ITreeItem {
