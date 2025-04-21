@@ -11,6 +11,4 @@ NEXT_PUBLIC_ENV=Production
 NEXT_PUBLIC_CHATBOT_BASE_URL=https://plaza-resource-center-prod-v2.azurewebsites.net/api/prod_http_trigger?code=9f0LM6CJvu-j7MNogDjDc8pRCI7-gOCTVPSFZuPw8eYGAzFu7sII4g==
 NEXT_PUBLIC_CHATBOT_SITE=ResourceCenter
 NEXT_PUBLIC_CHATBOT_VISIBILITY=ALL
-# CLIENT_USER=ResCtrUserAcct@plazahomemortgage.onmicrosoft.com
-# CLIENT_PASSWORD=U9K3Fb9a2fpdZKEZ
 
