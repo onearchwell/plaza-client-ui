@@ -48,7 +48,11 @@ export const callApi = async (inputMessage: string, permissionGroup: string, ses
   }
 };
 
-export const completeFilePath = (filepath: string) => { 
+export const docIDPath = (DocumentID: string) => {  
+  return `https://resourcecenterprod.plazahomemortgage.com/?fileId=${DocumentID}`;
+};
+
+export const sharePointCompleteFilePath = (filepath: string) => { 
   
   const SITE = process.env.NEXT_PUBLIC_CHATBOT_SITE!;
   const sanitizedFilePath = filepath.startsWith('/')

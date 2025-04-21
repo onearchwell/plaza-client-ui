@@ -4,7 +4,7 @@ import { MdDelete } from "react-icons/md";
 import { RiCloseLargeLine } from "react-icons/ri";
 import { BsSendFill } from "react-icons/bs";
 import ReactMarkdown from "react-markdown";
-import { callApi, completeFilePath, fileName, sleep } from './Api';
+import { callApi, docIDPath, fileName } from './Api';
 import { v4 as uuid } from 'uuid';
 // import './Chat.css';
 import { LoadingIcon } from './utils/LoadingIcon';
@@ -16,6 +16,7 @@ type Citation = {
   url: string;
   filepath: string;
   chunk_id: string;
+  DocumentID: string;
 };
 
 type Usage = {
@@ -330,10 +331,9 @@ useEffect(() => {
                 <div><strong>{fileName(citation.filepath)}</strong></div>
                 <div>
                 - <a 
-                  href={completeFilePath(citation.filepath.includes("root:/") ? citation.filepath.split("root:/")[1] : citation.filepath)} 
+                  href={docIDPath(citation.DocumentID)} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-blue-600 underline hover:text-blue-800"
                 >
                   File
                 </a>
