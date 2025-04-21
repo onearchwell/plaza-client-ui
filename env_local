@@ -1,8 +1,6 @@
 TENANT_ID=1771ac3f-0fb2-4d11-bbee-b3c79246e1fe
 CLIENT_ID=0a9db665-748d-4664-838a-993682a4a4bf
 CLIENT_SECRET=qKI8Q~eJTsYC3e9PnGHvzmryfhcjDV3ivOX9caYy
-CLIENT_USER=ResCtrUserAcct@plazahomemortgage.onmicrosoft.com
-CLIENT_PASSWORD=U9K3Fb9a2fpdZKEZ
 NEXT_PUBLIC_SITE_ID=66942b31-a254-4a2c-b247-ffa469198186
 NEXT_PUBLIC_DRIVE_ID=b!MSuUZlSiLEqyR_-kaRmBhqdi1DgTySdKrhjO4nj8uTJ6lTD8SPPXSK35MqH8lhJB
 NEXT_PUBLIC_DOCUMENT_LIBRARY_NAME="Plaza Resource Center"
@@ -13,4 +11,6 @@ NEXT_PUBLIC_ENV=Production
 NEXT_PUBLIC_CHATBOT_BASE_URL=https://plaza-resource-center-prod-v2.azurewebsites.net/api/prod_http_trigger?code=9f0LM6CJvu-j7MNogDjDc8pRCI7-gOCTVPSFZuPw8eYGAzFu7sII4g==
 NEXT_PUBLIC_CHATBOT_SITE=ResourceCenter
 NEXT_PUBLIC_CHATBOT_VISIBILITY=ALL
+# CLIENT_USER=ResCtrUserAcct@plazahomemortgage.onmicrosoft.com
+# CLIENT_PASSWORD=U9K3Fb9a2fpdZKEZ
 
