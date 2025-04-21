@@ -8,7 +8,6 @@ import {
   Stack,
   MessageBar,
   MessageBarType,
-  PrimaryButton,
   TextField,
   IStackTokens,
   IStackStyles,
@@ -17,19 +16,13 @@ import {
   Icon,
   IconButton,
   IBreadcrumbItem,
-  Breadcrumb,
   TooltipHost,
   DirectionalHint,
 } from "@fluentui/react"
-import { Tree, TreeItem, TreeItemLayout, TreeOpenChangeData } from "@fluentui/react-components";
+import { Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
 import { IIconProps } from '@fluentui/react/lib/Icon';
 import { Footer } from "../components/Footer"
 import { initializeIcons } from "@fluentui/font-icons-mdl2"
-import * as CryptoJS from 'crypto-js';
-import {
-  FolderRegular,
-  DocumentRegular,
-} from "@fluentui/react-icons";
 
 import styles from '../styles/component.module.scss'
 import DocumentViewer from "../components/DocumentViewer"

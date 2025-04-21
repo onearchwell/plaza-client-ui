@@ -38,6 +38,8 @@ async function getSharePointAppAccessToken(): Promise<string> {
     const clientId = process.env.CLIENT_ID!;
     const clientSecret = process.env.CLIENT_SECRET!;
     const siteUrl = process.env.NEXT_PUBLIC_SHAREPOINT_URL!;
+    const username = process.env.CLIENT_USER;
+    const password = process.env.CLIENT_PASSWORD;
 
     const tokenUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
     const response = await axios.post(
@@ -46,8 +48,8 @@ async function getSharePointAppAccessToken(): Promise<string> {
         grant_type: "password",
         client_id: clientId,
         client_secret: clientSecret,
-        username : "DummyUser@PlazaHomeMortgage.onmicrosoft.com",
-        password : "Just4fun",
+        username : username,
+        password : password,
         scope: `https://plazahomemortgage.sharepoint.com/.default`,
       }),
       {
