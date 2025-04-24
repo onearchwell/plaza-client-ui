@@ -7,8 +7,15 @@ const PdfViewer: React.FC<{ pdfUrl: string, fileBlob: Blob }> = ({ pdfUrl, fileB
   useEffect(() => {
     if(fileBlob) {
         const downloadAndDisplayFile = async () => {
-            const fileObjectUrl = URL.createObjectURL(fileBlob);
+          const fileName = pdfUrl.split("/").pop(); 
+            const namedFile = new File([fileBlob], fileName, { type: fileBlob.type });
+            // console.log(namedFile)
+            const fileObjectUrl = URL.createObjectURL(namedFile);
+            // console.log(fileObjectUrl)
             setFileUrl(fileObjectUrl);
+            return () => {
+              URL.revokeObjectURL(fileObjectUrl);
+            };
         };
         downloadAndDisplayFile();
     }

@@ -28,17 +28,17 @@ const CustomBreadcrumb: React.FC<CustomBreadcrumbProps> = ({
     color: '#007D7A',
   };
 
-  const handleClick = (item: IBreadcrumbItem) => {
-    setSelectedItem(null);
-    console.log(item, 'item')
-    if(item.onClick)item.onClick()
-  };
+  // const handleClick = (item: IBreadcrumbItem) => {
+  //   setSelectedItem(null);
+  //   console.log(item, 'item')
+  //   if(item.onClick)item.onClick()
+  // };
 
   return (
     <div style={breadcrumbContainerStyle}>
       {visibleItems.map((item, index) => (
         <span key={item.key} style={breadcrumbItemStyle}>
-          {index < visibleItems.length - 1 ? (
+          {/* {index < visibleItems.length - 1 ? (
             <button
               style={{
                 background: 'none',
@@ -47,13 +47,14 @@ const CustomBreadcrumb: React.FC<CustomBreadcrumbProps> = ({
                 fontSize: 'inherit',
                 cursor: 'pointer',
               }}
-              onClick={() => handleClick(item)}
+              // onClick={() => handleClick(item)}
             >
               {item.text}
             </button>
           ) : (
             item.text
-          )}
+          )} */}
+          {item.text}
           {index < visibleItems.length - 1 && ' > '}
         </span>
       ))}

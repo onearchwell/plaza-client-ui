@@ -78,10 +78,9 @@ export async function fetchRootItems(currentPath, permission) {
 
     const listTitle = "Plaza Resource Center"
     const url = `${siteUrl}/_api/web/lists/getbytitle('${encodeURIComponent(listTitle)}')/items` +
-      // `?$filter=FileDirRef eq '${currentPath}' and Permissions eq '${permission}' and OData__ModerationStatus eq 0 ` +
       `?$filter=FileDirRef eq '${currentPath}' and Permissions eq '${permission}' ` +
       `&$orderby=Priority asc` + 
-      `&$select=ID,Title,FileRef,FileLeafRef,FileDirRef,FSObjType,Permissions,UniqueId,Priority,OData__ModerationStatus`;
+      `&$select=ID,Title,FileRef,FileLeafRef,FileDirRef,FSObjType,Permissions,UniqueId,Priority`;
 
       console.log(url)
 
@@ -178,50 +177,33 @@ export async function fetchFileURL(filePath: string) {
 export async function searchQuery(queryString: string, permission: string) {
   try {
     const accessToken = await getSharePointAppAccessToken();
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!
+    const siteUrl = process.env.NEXT_PUBLIC_SHAREPOINT_URL!
     const listPath = process.env.NEXT_PUBLIC_PREURL
-    const encodedListPath = encodeURIComponent(listPath);
 
     if(!permission)
       permission = "ResCtrUser"
-    // const url = process.env.NEXT_PUBLIC_SHAREPOINT_URL! + "/_api/search/query"
-    // const query = "path:" + encodeURI(siteUrl.replace(/\/$/, '')) + "/" + queryString + "*"
-    const viewXml = `
-    <View>
-      <Query>
-        <Where>
-          <And>
-            <Eq>
-              <FieldRef Name='FSObjType'/>
-              <Value Type='Integer'>0</Value>
-            </Eq>
-            <Contains>
-              <FieldRef Name='Permissions'/>
-              <Value Type='Text'>${permission}</Value>
-            </Contains>
-          </And>
-        </Where>
-      </Query>
-    </View>
-  `;
-  const encodedViewXml = encodeURIComponent(viewXml);
 
-    const url = `${process.env.NEXT_PUBLIC_SHAREPOINT_URL}/_api/web/GetListUsingPath(DecodedUrl=@a1)/RenderListDataAsStream?@a1='${encodedListPath}'&View=7934a1de-5424-44a0-8deb-ce10806df0ed&ViewXml=${encodedViewXml}
-        &InplaceSearchQuery=${encodeURIComponent(queryString)}&TryNewExperienceSingle=TRUE&&FilterField1=FSObjType&FilterValue1=0&FilterType1=String&FilterOp1=In&FilterField2=Permissions&FilterValue2=${permission}&FilterType2=MultiChoice&FilterOp2=Eq`;
-    const body = {
-    }
+    const modifiedquery = `'(${queryString}*)'`; 
+    const encoded = encodeURIComponent(modifiedquery);
 
-    const response = await axios.post(
-      url,body,
+    const query = "path:" + encodeURI(siteUrl.replace(/\/$/, ''))
+
+    const url = process.env.NEXT_PUBLIC_SHAREPOINT_URL! + "/_api/search/query?querytext=" + encoded + 
+      "&querytemplate=%27{searchTerms}%20(" + query + ")%27" +
+      "&selectproperties=%27Filename,Title,Priority,Permissions,ows_Permissions,PermissionsOWSMCS,ListItemID,IsDocument%27" + 
+      "&RowLimit=50&culture=1033&BypassResultTypes=true&EnableQueryRules=false&TrimDuplicates=false"
+  
+    console.log(url)
+  
+    const response = await axios.get(url,
       {
         headers: {
-          "Authorization": `Bearer ${accessToken}`,
-          "Accept": "application/json;odata=verbose",
-          "Content-Type": "application/json;odata=verbose"
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json;odata=verbose",
         },
       }
     );
-    return response.data.Row;
+    return response.data.d;
   } catch (error) {
     console.error("Error submitting search:", error);
     console.log(error.response.data);
@@ -275,9 +257,7 @@ export async function fetchByItemId(permission, fileId) {
       permission = "ResCtrUser"
 
     const listTitle = "Plaza Resource Center"
-    let url = ""
-
-    url = `${siteUrl}/_api/web/lists/getbytitle('${encodeURIComponent(listTitle)}')/items(${fileId})` +
+    let url = `${siteUrl}/_api/web/lists/getbytitle('${encodeURIComponent(listTitle)}')/items(${fileId})` +
       // `?$filter=Permissions eq '${permission}' ` +
       `?$select=ID,Title,FileRef,FileLeafRef,FileDirRef,FSObjType,Permissions,UniqueId,Priority,OData__ModerationStatus`;
     console.log(url)

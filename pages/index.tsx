@@ -222,6 +222,7 @@ const App: React.FC = () => {
               let existingNode = currentNodeArray.find(node => node.name === part);
               // Load children for the current node
               // console.log(`Loading children for: ${existingNode.path}`);
+              // await handleItemSelect(existingNode)
               existingNode.children = await buildChildTree(existingNode.path, group);
 
               // Move deeper into the tree
@@ -376,18 +377,48 @@ const App: React.FC = () => {
     return <div>{error}</div>
   }
 
+  type SPKeyValue = {
+    Key: string;
+    Value: string | null;
+    ValueType: string;
+  };
+  
+  type SPResult = {
+    Cells: {
+      results: SPKeyValue[];
+    };
+  };
+
+  const parseSearchRow = (row: SPResult) => {
+    const item: Record<string, string | null> = row.Cells.results.reduce((acc, cell) => {
+      acc[cell.Key] = cell.Value;
+      return acc;
+    }, {} as Record<string, string | null>);
+
+    // Exclude folders and items with null FileType
+    if (item["IsDocument"] == "false") {
+      return null;
+    }
+    let path = item["OriginalPath"].split("sites")[1]
+    path = "/sites" + path
+    const uniqueId = item["UniqueId"].replace("{", "");
+
+    return {
+      key: uniqueId,
+      name: item["Title"]? item["Title"] : item["Filename"],
+      fileId: item["ListItemID"],
+      uniqueId: uniqueId,
+      path: path,
+      children: undefined,
+      isfolder: item["IsDocument"] == "false",
+      iconProps: item["IsDocument"] == "true"? {iconName: 'Page'} : {iconName: 'Folder'},
+    };
+  };
+
   async function searchLibraryItemsCont(searchQuery: string): Promise<ITreeItem[]> {
     if (!searchQuery) return [];
   
     try {
-      // Build SharePoint Search API Query
-      // const searchQueryBuilder = SearchQueryBuilder()
-      //   .text(`path:"${encodeURI(props.siteUrl.replace(/\/$/, ''))}/" ${searchQuery}*`)
-      //   .selectProperties("DocId", "UniqueId", "Title", "Path", "FileType", "SPWebUrl") // Use UniqueId to get actual List Item ID
-      //   .rowLimit(50);
-  
-      // const searchResults = await sp.search(searchQueryBuilder);
-
       // Call Search API here
       const searchResults = await fetch('/api/sharepoint/search', {
         method: 'POST',
@@ -398,27 +429,15 @@ const App: React.FC = () => {
         })
       });
       const data = await searchResults.json();
-      console.log(data.results)
+      const result = data?.results?.query?.PrimaryQueryResult?.RelevantResults?.Table?.Rows?.results
+      console.log(result)
   
       let treeItems: ITreeItem[] = [];
   
-      if (data?.results?.length > 0) {
+      if (result && result?.length > 0) {
         treeItems = await Promise.all(
-          data?.results.map(async (item) => {
-            // Exclude folders and items with null FileType
-            if (!item.FSObjType || item.FSObjType === "1") {
-              return null;
-            }
-            return {
-                key: item.UniqueId,
-                name: item.Title? item.Title : item.FileLeafRef,
-                fileId: item.ID,
-                uniqueId: item.UniqueId,
-                path: item.FileRef,
-                children: item.FSObjType == 1?  [] : undefined,
-                isfolder: item.FSObjType == 1,
-                iconProps: item.FSObjType == 1? {iconName: 'Folder'} : {iconName: 'Page'},
-            };
+          result.map(async (item) => {
+            return parseSearchRow(item)
           })
         );
   
@@ -437,7 +456,7 @@ const App: React.FC = () => {
   async function handleSearch () {
     setSearchLoading(true)
     const items = await searchLibraryItemsCont(searchText);
-    console.log("****** Search Returns****",items)
+    // console.log("****** Search Returns****",items)
     setSearchResults(items)
     setSearchLoading(false)
   };
@@ -630,6 +649,7 @@ const App: React.FC = () => {
                            <span
                            onClick={() => {
                              setSearchText(''); // Clear the search text
+                             setSearchResults([])
                              seteEableSearch(false); // Disable the search button if necessary
                            }}
                            style={{
