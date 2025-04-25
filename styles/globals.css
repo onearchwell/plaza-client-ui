@@ -133,7 +133,7 @@ font-weight: bold;
 .resize-handle {
 position: absolute;
 /* background: rgba(0, 76, 67, 0.3); */
-z-index: 1000;
+z-index: 1001;
 /* transition: background 0.2s ease; */
 }
 
@@ -146,7 +146,7 @@ top: 0;
 left: 0;
 width: 15px;
 height: 15px;
-cursor: nwse-resize;
+cursor: nwse-resize !important;
 }
 
 .top-handle {
@@ -154,7 +154,7 @@ top: 0;
 left: 15px;
 right: 0;
 height: 5px;
-cursor: ns-resize;
+cursor: ns-resize !important;
 }
 
 .left-handle {
@@ -162,7 +162,7 @@ left: 0;
 top: 15px;
 bottom: 0;
 width: 3px;
-cursor: ew-resize;
+cursor: ew-resize !important;
 }
 
 .chatContainer {
@@ -176,7 +176,7 @@ height: 470px;
 width: 370px;
 border: 1px solid rgba(255, 255, 255, 0.3);
 border-radius: 18px;
-z-index: 9999;
+z-index: 1000;
 /* padding: 20px; */
 background-color: rgb(255, 255, 255);
 backdrop-filter: blur(15px);

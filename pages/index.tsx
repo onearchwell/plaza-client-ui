@@ -130,6 +130,7 @@ const App: React.FC = () => {
   const[initialLoadDone, setInitialLoadDone] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false)
   const[chatbotVisibility, setChatbotVisibility] = useState(false)
+  const [openKeys, setOpenKeys] = useState(new Set(['Plaza Resource Center']));
 
   const fetchItems = async (folderPath) => {
     try {
@@ -221,13 +222,11 @@ const App: React.FC = () => {
               currentPath += (currentPath ? "/" : "") + part;
               let existingNode = currentNodeArray.find(node => node.name === part);
               // Load children for the current node
-              // console.log(`Loading children for: ${existingNode.path}`);
-              // await handleItemSelect(existingNode)
               existingNode.children = await buildChildTree(existingNode.path, group);
 
               // Move deeper into the tree
               currentNodeArray = existingNode.children;
-              //Deepthi - Trigger open on this item
+              onTreeItemExpandCollapse(existingNode)
             }
             setLandingPageFolder(null); 
           }
@@ -265,6 +264,7 @@ const App: React.FC = () => {
       else {
         const newNode: ITreeItem = { key: "Plaza Resource Center", name: "Plaza Resource Center", uniqueId: "", fileId:0, children: [], path: process.env.NEXT_PUBLIC_PREURL, isfolder: true};
         currentLevel.push(newNode);
+        // onTreeItemExpandCollapse(newNode)
         if (newNode.children) {
             currentLevel = newNode.children;
         }
@@ -499,7 +499,25 @@ const App: React.FC = () => {
     });
   };
 
-  async function onTreeItemExpandCollapse(item: ITreeItem, isExpanded: boolean) {
+  async function onTreeItemExpandCollapse(item: ITreeItem) {
+
+    if (item.isfolder) {
+      if (openKeys.has(item.key)) {
+        openKeys.delete(item.key); // collapsed
+        console.log(item.key + " Collapsed")
+      } else {
+        openKeys.add(item.key); // expanded
+        console.log(item.key + " Expanded")
+      }
+    }
+    console.log(openKeys)
+    setOpenKeys(openKeys)
+  }
+
+  async function onChangeLoadTreeChildren(item: ITreeItem) {
+
+    onTreeItemExpandCollapse(item)
+
     if (item.isfolder && !loadedChildren.includes(item.path)) {
       loadedChildren.push(item.path)
       setLoadedChildren(loadedChildren)
@@ -516,30 +534,31 @@ const App: React.FC = () => {
     }
   }
 
-  async function handleItemSelect(item: ITreeItem): Promise<void> {
+  async function handleItemSelect(item: ITreeItem, triggerLoad: boolean): Promise<void> {
+
     updateBreadcrumbItems(item.path, item.name)
     setSelectedKey(item.key) //Unique
     if(item) {
-        if(item.isfolder) {
-          onTreeItemExpandCollapse(item, true);
+        if(item.isfolder && triggerLoad) {
+          onChangeLoadTreeChildren(item);
         } else {
-        const listItem: IDocumentItem = {
+          const listItem: IDocumentItem = {
           id: item.key,
           fileId: item.fileId.toString(),
           name: item.name,
           isFolder: item.isfolder,
           serverRelativeUrl: item.path
-        };
-        setSelectedItem(listItem)
-      }
+          };
+          setSelectedItem(listItem)
+        }
     }
   }
 
   const renderTreeItems = (items: any[]) => {
     return items.map((item) => (
       <TreeItem className={styles.treeViewItem} key={item.key} itemType={item.isfolder? "branch" : "leaf" }
-            value={item.path} onClick={() => handleItemSelect(item)} 
-            onOpenChange={async (e) => { handleItemSelect(item)}}
+            value={item.path} onClick={() => handleItemSelect(item, false)} open={openKeys.has(item.key)}
+            onOpenChange={async (e) => { handleItemSelect(item, true)}}
             style={{  marginLeft: item && item.isfolder? '10px' : '20px'}}
             > 
                 <TreeItemLayout>
@@ -560,7 +579,7 @@ const App: React.FC = () => {
                   </TooltipHost>
                 </TreeItemLayout>
               {item.isfolder && (
-          <Tree onOpenChange={() => handleItemSelect(item)} >{renderTreeItems(item.children)}</Tree>
+          <Tree onOpenChange={() => handleItemSelect(item, true)} >{renderTreeItems(item.children)}</Tree>
         )}
       </TreeItem>
     ));
