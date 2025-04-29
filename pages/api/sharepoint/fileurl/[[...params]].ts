@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   console.log(params.length)
   if(params.length > 1) {
-    weburl = params.join("/");
+    weburl = '/' + params.join("/");
   }
   const encodedPath = weburl;
 
