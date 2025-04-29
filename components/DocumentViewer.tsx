@@ -76,7 +76,8 @@ const DocumentViewer: React.FC<{ fileUrl: string}> = ({ fileUrl }) => {
               mimeType = 'application/octet-stream'
               break;
       }
-      await downloadAndDisplayFile(mimeType)
+      if (extension != "pdf")
+        await downloadAndDisplayFile(mimeType)
     };
     findDocType();
   }, [fileUrl]);
@@ -96,7 +97,7 @@ const DocumentViewer: React.FC<{ fileUrl: string}> = ({ fileUrl }) => {
   return (
     <Stack tokens={{ childrenGap: 20 }} styles={stackfontStyles}>
       {fileType === 'pdf' ? 
-        <PdfViewer pdfUrl={fileUrl} fileBlob={fileBlob}/>
+        <PdfViewer pdfUrl={fileUrl}/>
         :
         <div>
           <div

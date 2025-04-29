@@ -1,25 +1,15 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
+import { fileName } from './chatbot/Api';
 
-const PdfViewer: React.FC<{ pdfUrl: string, fileBlob: Blob }> = ({ pdfUrl, fileBlob }) => {
+const PdfViewer: React.FC<{ pdfUrl: string}> = ({ pdfUrl }) => {
   const [fileUrl, setFileUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if(fileBlob) {
-        const downloadAndDisplayFile = async () => {
-          const fileName = pdfUrl.split("/").pop(); 
-            const namedFile = new File([fileBlob], fileName, { type: fileBlob.type });
-            // console.log(namedFile)
-            const fileObjectUrl = URL.createObjectURL(namedFile);
-            // console.log(fileObjectUrl)
-            setFileUrl(fileObjectUrl);
-            return () => {
-              URL.revokeObjectURL(fileObjectUrl);
-            };
-        };
-        downloadAndDisplayFile();
-    }
-  }, [fileBlob]);
+    const encodedPath = encodeURIComponent(pdfUrl);
+    const fileName = pdfUrl.split("/").pop(); 
+    setFileUrl('/api/sharepoint/fileurl/'+ encodedPath + '/' + fileName)
+  }, [pdfUrl]);
 
   return (
     <div>

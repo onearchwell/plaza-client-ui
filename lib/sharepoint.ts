@@ -82,8 +82,6 @@ export async function fetchRootItems(currentPath, permission) {
       `&$orderby=Priority asc` + 
       `&$select=ID,Title,FileRef,FileLeafRef,FileDirRef,FSObjType,Permissions,UniqueId,Priority`;
 
-      console.log(url)
-
     const response = await axios.get(url,
       // `${siteUrl}/_api/web/lists/getbytitle('Plaza%20Resource%20Center')/items?$filter=FSObjType eq 0 and Permissions eq '${permission}' and Status eq 'Published'&$select=ID,UniqueId,FileLeafRef,FileRef,Title,Permissions,Status`,
       // `${siteUrl}/_api/web/lists/getbytitle('Plaza%20Resource%20Center')/items?$filter=FSObjType eq 0 and Permissions eq '${permission}'&$select=ID,UniqueId,FileLeafRef,FileRef,Title,Permissions,Status`,
@@ -183,7 +181,10 @@ export async function searchQuery(queryString: string, permission: string) {
     if(!permission)
       permission = "ResCtrUser"
 
-    const modifiedquery = `'(${queryString}*)'`; 
+    let modifiedquery = `'(${queryString}*)'`; 
+    if (permission != "ResCtrUser")
+      modifiedquery = `'(${permission} ${queryString}*)'`; 
+
     const encoded = encodeURIComponent(modifiedquery);
 
     const query = "path:" + encodeURI(siteUrl.replace(/\/$/, ''))
@@ -192,8 +193,6 @@ export async function searchQuery(queryString: string, permission: string) {
       "&querytemplate=%27{searchTerms}%20(" + query + ")%27" +
       "&selectproperties=%27Filename,Title,Priority,Permissions,ows_Permissions,PermissionsOWSMCS,ListItemID,IsDocument%27" + 
       "&RowLimit=50&culture=1033&BypassResultTypes=true&EnableQueryRules=false&TrimDuplicates=false"
-  
-    console.log(url)
   
     const response = await axios.get(url,
       {
@@ -260,7 +259,6 @@ export async function fetchByItemId(permission, fileId) {
     let url = `${siteUrl}/_api/web/lists/getbytitle('${encodeURIComponent(listTitle)}')/items(${fileId})` +
       // `?$filter=Permissions eq '${permission}' ` +
       `?$select=ID,Title,FileRef,FileLeafRef,FileDirRef,FSObjType,Permissions,UniqueId,Priority,OData__ModerationStatus`;
-    console.log(url)
 
     const response = await axios.get(url,
       {
