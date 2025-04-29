@@ -12,6 +12,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(400).send('Missing parameters');
     return;
   }
+  console.log(params)
+  console.log(params.length)
   const encodedPath = params[params.length - 2];
   const filename = params[params.length - 1];
 
