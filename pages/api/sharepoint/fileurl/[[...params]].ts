@@ -22,8 +22,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    console.log("Filename is : ",filename)
+    console.log("URL is : ",url)
     const response = await fetchFileURL(url)
-    console.log(filename)
     res.status(200);
 
     const buffer = Buffer.from(response.data);
