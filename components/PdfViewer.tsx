@@ -8,7 +8,7 @@ const PdfViewer: React.FC<{ pdfUrl: string}> = ({ pdfUrl }) => {
   useEffect(() => {
     const encodedPath = encodeURIComponent(pdfUrl);
     const fileName = pdfUrl.split("/").pop(); 
-    setFileUrl('/api/sharepoint/fileurl/'+ encodedPath + '/' + fileName)
+    setFileUrl('/api/sharepoint/fileurl/'+ encodedPath)
   }, [pdfUrl]);
 
   return (
