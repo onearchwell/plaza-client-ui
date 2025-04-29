@@ -8,14 +8,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { params } = req.query;
 
-  if (!params || !Array.isArray(params) || params.length < 2) {
+  if (!params || !Array.isArray(params)) {
     res.status(400).send('Missing parameters');
     return;
   }
   console.log(params)
+  let weburl = params[0]
+
   console.log(params.length)
-  const encodedPath = params[params.length - 2];
-  const filename = params[params.length - 1];
+  if(params.length > 1) {
+    weburl = params.join("/");
+  }
+  const encodedPath = weburl;
 
   const url = decodeURIComponent(encodedPath as string);
 
@@ -24,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
+    const filename = url.split("/").pop(); 
     console.log("Filename is : ",filename)
     console.log("URL is : ",url)
     const response = await fetchFileURL(url)
