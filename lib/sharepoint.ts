@@ -160,7 +160,7 @@ export async function fetchFileURL(filePath: string) {
     );
     return response;
   } catch (error) {
-    console.error("Error fetching file item:", error);
+    console.error("Error fetching file item:", error.toJSON());
     throw error;
   }
 }
