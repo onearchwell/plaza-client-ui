@@ -10,12 +10,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const env = context.query.env as string;
   const fileId = context.query.fileId as string;
 
-  const url = new URL(window.location.href);
-  if (url.hostname === 'resourcecenterprod.plazahomemortgage.com') {
-    url.hostname = `resourcecenter.plazahomemortgage.com`;
-    url.host = `resourcecenter.plazahomemortgage.com`;
-    window.location.href = url.toString(); 
-  }
+  // const url = new URL(window.location.href);
+  // if (url.hostname === 'resourcecenterprod.plazahomemortgage.com') {
+  //   url.hostname = `resourcecenter.plazahomemortgage.com`;
+  //   url.host = `resourcecenter.plazahomemortgage.com`;
+  //   window.location.href = url.toString(); 
+  // }
 
   const checkMe = (user: string, env: string): boolean =>  {
 
