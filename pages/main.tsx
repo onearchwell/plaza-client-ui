@@ -39,6 +39,15 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     };
   }
 
+  res.setHeader(
+    "Set-Cookie",
+    cookie.serialize("me", userId, {
+      path: "/",
+      httpOnly: false,
+      maxAge: 60 * 60 * 24,
+    })
+  );
+
   // if (host === 'resourcecenterprod.plazahomemortgage.com') {
   if (originalhost === 'plaza-client-ui-prod-asgwa4g7c0abfyhz.eastus2-01.azurewebsites.net' ||
     originalhost === 'resourcecenterprod.plazahomemortgage.com'
@@ -54,15 +63,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   }
-
-  res.setHeader(
-    "Set-Cookie",
-    cookie.serialize("me", userId, {
-      path: "/",
-      httpOnly: false,
-      maxAge: 60 * 60 * 24,
-    })
-  );
 
   const queryString = fileId ? `/?fileId=${fileId}` : "/";
   return {
