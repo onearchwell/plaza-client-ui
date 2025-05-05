@@ -29,8 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const filename = url.split("/").pop(); 
-    console.log("Filename is : ",filename)
-    console.log("URL is : ",url)
     const response = await fetchFileURL(url)
     res.status(200);
 

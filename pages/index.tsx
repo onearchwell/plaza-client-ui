@@ -344,6 +344,12 @@ const App: React.FC = () => {
 
     // Check if it is a redirect page
     const url = new URL(window.location.href);
+    console.log(url)
+    if (url.hostname === 'resourcecenterprod.plazahomemortgage.com') {
+      url.hostname = `resourcecenter.plazahomemortgage.com`;
+      url.host = `resourcecenter.plazahomemortgage.com`;
+      window.location.href = url.toString(); 
+    }
     const params = new URLSearchParams(url.search);   
     if (params.has("fileId") && params.get("fileId")) {
       const idValue = params.get("fileId");
