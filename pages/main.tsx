@@ -10,36 +10,42 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const env = context.query.env as string;
   const fileId = context.query.fileId as string;
 
-  // const url = new URL(window.location.href);
-  // if (url.hostname === 'resourcecenterprod.plazahomemortgage.com') {
-  //   url.hostname = `resourcecenter.plazahomemortgage.com`;
-  //   url.host = `resourcecenter.plazahomemortgage.com`;
-  //   window.location.href = url.toString(); 
-  // }
+  let originalhost = context.req.headers.host;
+  console.log(originalhost)
+  let newhost = originalhost
+
+  if (originalhost === 'plaza-client-ui-prod-asgwa4g7c0abfyhz.eastus2-01.azurewebsites.net') {
+    newhost = `resourcecenter.plazahomemortgage.com`;
+  }
 
   const checkMe = (user: string, env: string): boolean =>  {
 
     let result = false;
-    if (!env) {
-      if(allowedPermissions.includes(user)) {
+    if(allowedPermissions.includes(user)) {
         result = true
-      }
-    } else {
-      // const key = "hufhwflkcklscklsnsdcjdsck"
-      // const encryptedMessage = CryptoJS.AES.encrypt(user, key).toString();
-      // console.log('Encrypted Message:', encryptedMessage);
-      // const bytes = CryptoJS.AES.decrypt(encryptedMessage, key);
-      // const decryptedMessage = bytes.toString(CryptoJS.enc.Utf8);
-      // console.log('Decrypted Message:', decryptedMessage);
-      result = false;
     }
     return result
   }
 
   if (!userId || !checkMe(userId, env)) {
+    let fullUrl = `https://${newhost}/unauthorized`;
     return {
       redirect: {
-        destination: "/unauthorized",
+        destination: fullUrl,
+        permanent: false,
+      },
+    };
+  }
+
+  // if (host === 'resourcecenterprod.plazahomemortgage.com') {
+  if (originalhost === 'plaza-client-ui-prod-asgwa4g7c0abfyhz.eastus2-01.azurewebsites.net') {
+    let fullUrl = `https://${newhost}/main?me=${userId}`;
+    if (fileId)
+      fullUrl = fullUrl + `&fileId=${fileId}`
+    console.log(fullUrl)
+    return {
+      redirect: {
+        destination: fullUrl,
         permanent: false,
       },
     };
