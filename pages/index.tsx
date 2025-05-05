@@ -325,6 +325,17 @@ const App: React.FC = () => {
 
   useEffect(() => {
 
+    // Check if it is a redirect page
+    const url = new URL(window.location.href);
+    console.log(url)
+    if (url.hostname === 'plaza-client-ui-prod-asgwa4g7c0abfyhz.eastus2-01.azurewebsites.net' || 
+      url.hostname === 'resourcecenterprod.plazahomemortgage.com' 
+    ) {
+      url.hostname = `resourcecenter.plazahomemortgage.com`;
+      url.host = `resourcecenter.plazahomemortgage.com`;
+      window.location.href = url.toString(); 
+    }
+    
     const getCookieValue = (name: string) => {
       const match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`));
       return match ? decodeURIComponent(match[2]) : null;
@@ -342,16 +353,6 @@ const App: React.FC = () => {
     else if(process.env.NEXT_PUBLIC_CHATBOT_VISIBILITY == "INTERNAL" && group == "ResCtrUser")
       setChatbotVisibility(true)
 
-    // Check if it is a redirect page
-    const url = new URL(window.location.href);
-    console.log(url)
-    // if (url.hostname === 'plaza-client-ui-prod-asgwa4g7c0abfyhz.eastus2-01.azurewebsites.net' || 
-    //   url.hostname === 'resourcecenterprod.plazahomemortgage.com' 
-    // ) {
-    //   url.hostname = `resourcecenter.plazahomemortgage.com`;
-    //   url.host = `resourcecenter.plazahomemortgage.com`;
-    //   window.location.href = url.toString(); 
-    // }
     const params = new URLSearchParams(url.search);   
     if (params.has("fileId") && params.get("fileId")) {
       const idValue = params.get("fileId");
