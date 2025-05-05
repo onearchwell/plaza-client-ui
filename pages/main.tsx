@@ -10,11 +10,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const env = context.query.env as string;
   const fileId = context.query.fileId as string;
 
-  let host = context.req.headers.host;
-  console.log(host)
-
-  if (host === 'resourcecenterprod.plazahomemortgage.com') {
-    host = `resourcecenter.plazahomemortgage.com`;
+  const url = new URL(window.location.href);
+  if (url.hostname === 'resourcecenterprod.plazahomemortgage.com') {
+    url.hostname = `resourcecenter.plazahomemortgage.com`;
+    url.host = `resourcecenter.plazahomemortgage.com`;
+    window.location.href = url.toString(); 
   }
 
   const checkMe = (user: string, env: string): boolean =>  {
@@ -39,7 +39,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   if (!userId || !checkMe(userId, env)) {
     return {
       redirect: {
-        host: host,
         destination: "/unauthorized",
         permanent: false,
       },
@@ -58,7 +57,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const queryString = fileId ? `/?fileId=${fileId}` : "/";
   return {
     redirect: {
-      host: host,
       destination: `${queryString}`, // Pass entire query string
       permanent: false,
     },
