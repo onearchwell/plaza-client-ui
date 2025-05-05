@@ -14,7 +14,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   console.log(originalhost)
   let newhost = originalhost
 
-  if (originalhost === 'plaza-client-ui-prod-asgwa4g7c0abfyhz.eastus2-01.azurewebsites.net') {
+  if (originalhost === 'plaza-client-ui-prod-asgwa4g7c0abfyhz.eastus2-01.azurewebsites.net' ||
+      originalhost === 'resourcecenterprod.plazahomemortgage.com'
+  ) {
     newhost = `resourcecenter.plazahomemortgage.com`;
   }
 
@@ -38,7 +40,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 
   // if (host === 'resourcecenterprod.plazahomemortgage.com') {
-  if (originalhost === 'plaza-client-ui-prod-asgwa4g7c0abfyhz.eastus2-01.azurewebsites.net') {
+  if (originalhost === 'plaza-client-ui-prod-asgwa4g7c0abfyhz.eastus2-01.azurewebsites.net' ||
+    originalhost === 'resourcecenterprod.plazahomemortgage.com'
+  ) {
     let fullUrl = `https://${newhost}/main?me=${userId}`;
     if (fileId)
       fullUrl = fullUrl + `&fileId=${fileId}`
